@@ -10,21 +10,27 @@ func Test(t *testing.T){
 
 	g.Describe("Heap", func(){
 
-	g.It("should peek the priority node", func(){
 		aHeap := Heap{}
 
-		aHeap.insert(&node{value:1.00, lookup:"bob" })
-		aHeap.insert(&node{value:2.05, lookup:"bob" })
-		aHeap.insert(&node{value:2.00, lookup:"bob" })
-		aHeap.insert(&node{value:1.55, lookup:"bob" })
-		aHeap.insert(&node{value:0.80, lookup:"bob" })
+		g.Before(func(){
+			aHeap.enqueue(&node{value:1.00, lookup:"bob" })
+			aHeap.enqueue(&node{value:2.05, lookup:"bob" })
+			aHeap.enqueue(&node{value:2.00, lookup:"bob" })
+			aHeap.enqueue(&node{value:1.55, lookup:"bob" })
+			aHeap.enqueue(&node{value:0.80, lookup:"bob" })
+		})
 
-		g.Assert(aHeap.peek().value).Equal(2.05)
-	})
+		g.It("should peek the priority node", func(){
+			g.Assert(aHeap.peek().value).Equal(2.05)
+		})
 
-	g.It("should dequeue nodes in priority order when dequeing", func(){
-
-	})
+		g.It("should dequeue nodes in priority order when dequeing", func(){
+			g.Assert(aHeap.dequeue().value).Equal(2.05)
+			g.Assert(aHeap.dequeue().value).Equal(2.00)
+			g.Assert(aHeap.dequeue().value).Equal(1.55)
+			g.Assert(aHeap.dequeue().value).Equal(1.00)
+			g.Assert(aHeap.dequeue().value).Equal(0.80)
+		})
 
   })
 }

@@ -1,9 +1,5 @@
 package heap
 
-import (
-
-)
-
 type node struct {
 	value float64
 	lookup string
@@ -21,38 +17,91 @@ func (h *Heap) peek() *node {
 	}
 }
 
-func (h *Heap) insert(node *node) {
+func (h *Heap) enqueue(node *node) {
  	h.data = append(h.data, node)
 
-	currentNodeIndex := len(h.data) - 1
+	currentNode := len(h.data) - 1
 
-	if currentNodeIndex == 0 {
+	if currentNode == 0 {
 		return
 	}
 
 	reorder := true
 
 	for reorder {
-		parentNodeIndex := h.getParentIndex(currentNodeIndex)
+		parentNode := h.getParent(currentNode)
 
-		if h.get(parentNodeIndex).value < h.get(currentNodeIndex).value {
-			h.swap(parentNodeIndex, currentNodeIndex)
-			currentNodeIndex = parentNodeIndex
+		if h.get(parentNode).value < h.get(currentNode).value {
+			h.swap(parentNode, currentNode)
+			currentNode = parentNode
 		} else {
 			reorder = false
 		}
 	}
 }
 
-func (h *Heap) getParentIndex(index int) int {
+func (h *Heap) dequeue () *node {
+	if !(len(h.data) > 0) {
+		return nil
+	}
+	dequeued := h.data[0]
+
+	if len(h.data) > 0 {
+		h.swap(0, len(h.data) - 1)
+		h.data = h.data[0:(len(h.data) - 1)]
+	} else {
+		return nil
+	}
+
+	current := 0
+	reorder := true
+
+	for reorder {
+		leftChild, rightChild := h.getChildren(current)
+		
+		leftChildNode := h.get(leftChild)
+		rightChildNode := h.get(rightChild)
+
+		var minChild int
+
+		if leftChildNode == nil && rightChildNode != nil {
+			minChild = rightChild
+		
+		} else if rightChildNode == nil && leftChildNode != nil {
+			minChild = leftChild
+		
+		} else if rightChildNode != nil && leftChildNode != nil {
+			if leftChildNode.value >= rightChildNode.value {
+				minChild = leftChild
+			} else {
+				minChild = rightChild
+			}
+		}
+
+		if minChild == 0 || h.get(minChild).value <= h.get(current).value {
+			reorder = false
+		} else	{
+			h.swap(minChild, current)
+			current = minChild
+		}
+	}
+
+	return dequeued
+}
+
+func (h *Heap) getParent(index int) int {
  	return ((index - 1) / 2);
 }
 
+func (h *Heap) getChildren(index int) (int, int) {
+	return (2 * index + 1), (2 * index + 2)
+}
+
 func (h *Heap) get(index int) *node {
-	if h.data[index] != nil {
-		return h.data[index]
-	} else {
+	if index >= len(h.data) {
 		return nil
+	} else {
+		return h.data[index]
 	}
 }
 
