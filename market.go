@@ -65,6 +65,11 @@ type OrderBook struct {
 // the trade would get partially filled at 100 shares @ $10.00 and
 // 600 shares @ 9.99
 
+// we can avoid having to traverse the heap to cancel things
+// because were going to have a lookup hash where we store actual orders
+// constant time cancelation, if the top of the heap gets looked up as canceled
+// we remove it only then
+
 func main() {
   anOrder := Order{ticker: "GOLANG", bid: 10, shares: 100, actor: "Bob"}
   aHeap := heap.Heap{}

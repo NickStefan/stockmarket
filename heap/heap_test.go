@@ -10,7 +10,12 @@ func Test(t *testing.T){
 
   g.Describe("Heap", func(){
 
-    g.It("should dequeue nodes in priority order when dequeueing", func(){
+    g.It("should peek the priority node", func(){
+      aHeap := Heap{ &node{value:1.00, lookup:"bob" } }
+      g.Assert(aHeap.peek().value).Equal(1.00)
+    })
+
+    g.It("should dequeue nodes in priority order when dequeing", func(){
 
     })
 
