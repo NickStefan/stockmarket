@@ -1,8 +1,8 @@
 package main
 
 import (
-  "fmt"
-  "github.com/nickstefan/market/heap"
+	"fmt"
+	"github.com/nickstefan/market/heap"
 )
 
 // what makes up a stock market? competing buy and sell orders
@@ -14,13 +14,13 @@ import (
 // limit sell order "i will sell 100 shares highest available price above _____"
 
 type Order struct {
-  ticker string
-  bid float64
-  ask float64
-  shares int
-  actor string
-  filled bool
-  canceled bool
+	ticker string
+	bid float64
+	ask float64
+	shares int
+	actor string
+	filled bool
+	canceled bool
 }
 
 // how does a stock market organize the orders? Depth of Market or OrderBook
@@ -71,8 +71,8 @@ type OrderBook struct {
 // we remove it only then
 
 func main() {
-  anOrder := Order{ticker: "GOLANG", bid: 10, shares: 100, actor: "Bob"}
-  aHeap := heap.Heap{}
-  fmt.Println(anOrder)
-  fmt.Println(aHeap)
+	anOrder := Order{ticker: "GOLANG", bid: 10, shares: 100, actor: "Bob"}
+	aHeap := heap.Heap{}
+	fmt.Println(anOrder)
+	fmt.Println(aHeap)
 }
