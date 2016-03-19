@@ -11,7 +11,8 @@ func Test(t *testing.T){
   g.Describe("Heap", func(){
 
     g.It("should peek the priority node", func(){
-      aHeap := Heap{ &node{value:1.00, lookup:"bob" } }
+      aHeap := Heap{}
+      aHeap.insert(&node{value:1.00, lookup:"bob" })
       g.Assert(aHeap.peek().value).Equal(1.00)
     })
 
