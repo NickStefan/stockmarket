@@ -2,6 +2,7 @@ package main
 
 import (
   "fmt"
+  "github.com/nickstefan/market/heap"
 )
 
 // what makes up a stock market? competing buy and sell orders
@@ -24,7 +25,7 @@ type Order struct {
 
 // how does a stock market organize the orders? Depth of Market or OrderBook
 
-type OrderBook {
+type OrderBook struct {
 
 }
 
@@ -66,5 +67,7 @@ type OrderBook {
 
 func main() {
   anOrder := Order{ticker: "GOLANG", bid: 10, shares: 100, actor: "Bob"}
+  aHeap := heap.Heap{}
   fmt.Println(anOrder)
+  fmt.Println(aHeap)
 }
