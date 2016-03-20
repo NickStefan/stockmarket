@@ -119,7 +119,7 @@ func Test(t *testing.T){
 				// filling orders will dequeue filled orders,
 				// so expect further down the line orders when dequeueing
 				orderBook.run()
-				g.Assert(orderBook.buyQueue.Dequeue().Value).Equal(10.05)
+				g.Assert(orderBook.buyQueue.Dequeue().Value).Equal(10.00)
 				g.Assert(orderBook.sellQueue.Dequeue().Value).Equal(10.10)
 			})
 
@@ -129,4 +129,63 @@ func Test(t *testing.T){
 		})
 
 	})
+}
+
+// BENCHMARKS
+var benchOrders = [6]Order{
+	BuyLimit{
+		bid: 10.05, 
+		BaseOrder:BaseOrder{
+			actor: "Bob", timecreated: "10:00am", intent: "BUY",
+			shares: 100, state: "OPEN",
+		},
+	},
+	BuyMarket{
+		BaseOrder:BaseOrder{
+			actor: "Tim", timecreated: "9:58am", intent: "BUY",
+			shares: 100, state: "OPEN",
+		},
+	},
+	BuyLimit{
+		bid: 10.00, 
+		BaseOrder:BaseOrder{
+			actor: "Bob", timecreated: "10:00am", intent: "BUY",
+			shares: 100, state: "OPEN",
+		},
+	},
+	SellMarket{
+		BaseOrder:BaseOrder{
+			actor: "Tim", timecreated: "9:58am", intent: "SELL",
+			shares: 100, state: "OPEN",
+		},
+	},
+	SellLimit{
+		ask: 10.10, 
+		BaseOrder:BaseOrder{
+			actor: "Tim", timecreated: "9:58am", intent: "SELL",
+			shares: 100, state: "OPEN",
+		},
+	},
+	SellMarket{
+		BaseOrder:BaseOrder{
+			actor: "Tim", timecreated: "9:58am", intent: "SELL",
+			shares: 100, state: "OPEN",
+		},
+	},
+}
+
+var result float64
+
+func BenchmarkOrderBookRun(b *testing.B){
+
+	orderBook := NewOrderBook()
+
+	for i :=0; i < len(benchOrders); i++ {
+		orderBook.add(benchOrders[i])
+	}
+
+	// filling orders will dequeue filled orders,
+	// so expect further down the line orders when dequeueing
+	orderBook.run()
+	result = orderBook.buyQueue.Dequeue().Value
 }

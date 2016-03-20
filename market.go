@@ -109,7 +109,10 @@ func (o *OrderBook) add(order Order) {
 }
 
 func (o *OrderBook) run() {
-
+	for o.buyQueue.Peek().Value >= o.sellQueue.Peek().Value {
+		o.buyQueue.Dequeue()
+		o.sellQueue.Dequeue()
+	}
 }
 
 // whats an algorithm to match buyers with sellers? simple case just using market orders
