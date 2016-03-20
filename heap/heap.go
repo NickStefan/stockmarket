@@ -6,6 +6,7 @@ type node struct {
 }
 
 type Heap struct {
+	priority string
 	data []*node
 }
 
@@ -14,6 +15,20 @@ func (h *Heap) peek() *node {
 		return h.data[0]
 	} else {
 		return nil
+	}
+}
+
+func (h *Heap) compare(current *node, other *node) bool {
+	if h.priority == "min" {
+		// in a min heap,
+			// keep swapping when this is true during the enqueue
+			// and stop swapping when this is true in the denqueue reorder
+		return other.value > current.value
+	} else {
+		// in a max heap,
+			// keep swapping when this is true during the enqueue
+			// and stop swapping when this is true in the denqueue reorder
+		return other.value < current.value
 	}
 }
 
@@ -31,7 +46,7 @@ func (h *Heap) enqueue(node *node) {
 	for reorder {
 		parentNode := h.getParent(currentNode)
 
-		if h.get(parentNode).value < h.get(currentNode).value {
+		if h.compare(h.get(currentNode), h.get(parentNode)) {
 			h.swap(parentNode, currentNode)
 			currentNode = parentNode
 		} else {
@@ -71,14 +86,14 @@ func (h *Heap) dequeue () *node {
 			minChild = leftChild
 		
 		} else if rightChildNode != nil && leftChildNode != nil {
-			if leftChildNode.value >= rightChildNode.value {
+			if leftChildNode.value > rightChildNode.value {
 				minChild = leftChild
 			} else {
 				minChild = rightChild
 			}
 		}
 
-		if minChild == 0 || h.get(minChild).value <= h.get(current).value {
+		if minChild == 0 || h.compare(h.get(current), h.get(minChild)) {
 			reorder = false
 		} else	{
 			h.swap(minChild, current)
