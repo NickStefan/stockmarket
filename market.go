@@ -13,20 +13,95 @@ import (
 // market sell order "i will sell 100 shares at the highest available price"
 // limit sell order "i will sell 100 shares highest available price above _____"
 
-type Order struct {
-	ticker string
-	bid float64
-	ask float64
+type BaseOrder struct {
 	shares int
-	actor string
-	filled bool
-	canceled bool
+	actor string // BOB
+	intent string // BUY SELL
+	state string // OPEN FILLED CANCELED
+	timecreated string
+	timeclosed string
+}
+
+func (b BaseOrder) lookup() string {
+	return b.actor + b.timecreated
+}
+
+func (b BaseOrder) getOrder() BaseOrder {
+	return b
+}
+
+type BuyLimit struct {
+	bid float64
+	BaseOrder
+}
+
+type SellLimit struct {
+	ask float64
+	BaseOrder
+}
+
+type BuyMarket struct {
+	BaseOrder
+}
+
+type SellMarket struct {
+	BaseOrder
+}
+
+// create a consistent price interface for the differen types of orders
+
+type Order interface {
+	price() float64
+	lookup() string
+	getOrder() BaseOrder
+}
+
+func (b BuyLimit) price() float64 {
+	return b.bid
+}
+
+func (s SellLimit) price() float64 {
+	return s.ask
+}
+
+func (b BuyMarket) price() float64 {
+	return 1000000000
+}
+
+func (s SellMarket) price() float64 {
+	return 0
 }
 
 // how does a stock market organize the orders? Depth of Market or OrderBook
 
 type OrderBook struct {
+	buyQueue heap.Heap
+	sellQueue heap.Heap
+	buyHash map[string]*Order
+	sellHash map[string]*Order
+}
 
+func (o *OrderBook) add(order Order) {
+	if o.buyHash == nil && o.sellHash == nil {
+		o.buyHash = make(map[string]*Order)
+		o.sellHash = make(map[string]*Order)
+	}
+
+	if order.getOrder().intent == "BUY" {
+		o.buyHash[order.lookup()] = &order
+		o.buyQueue.Enqueue(&heap.Node{
+			Value: order.price(),
+			Lookup: order.lookup(), 
+		})
+		
+	} else if order.getOrder().intent == "SELL" {
+		fmt.Println(order.lookup())
+		o.sellHash[order.lookup()] = &order
+		o.sellQueue.Enqueue(&heap.Node{
+			Value: order.price(),
+			Lookup: order.lookup(),
+		})
+	}
 }
 
 // whats an algorithm to match buyers with sellers? simple case just using market orders
@@ -71,8 +146,26 @@ type OrderBook struct {
 // we remove it only then
 
 func main() {
-	anOrder := Order{ticker: "GOLANG", bid: 10, shares: 100, actor: "Bob"}
-	aHeap := heap.Heap{}
-	fmt.Println(anOrder)
-	fmt.Println(aHeap)
+	orderBook := OrderBook{}
+
+	anOrder := SellLimit{
+		ask: 10.05, 
+		BaseOrder:BaseOrder{
+			actor: "Tim", timecreated: "9:58am", intent: "SELL",
+			shares: 100, state: "OPEN",
+		},
+	}
+
+	anotherOrder := BuyLimit{
+		bid: 10.00, 
+		BaseOrder:BaseOrder{
+			actor: "Bob", timecreated: "10:00am", intent: "BUY",
+			shares: 100, state: "OPEN",
+		},
+	}
+	orderBook.add(anOrder)
+	orderBook.add(anotherOrder)
+
+	fmt.Println(orderBook.buyHash)
+	fmt.Println(orderBook.sellHash)
 }

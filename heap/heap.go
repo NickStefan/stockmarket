@@ -1,16 +1,16 @@
 package heap
 
-type node struct {
-	value float64
-	lookup string
+type Node struct {
+	Value float64
+	Lookup string
 }
 
 type Heap struct {
 	priority string
-	data []*node
+	data []*Node
 }
 
-func (h *Heap) peek() *node {
+func (h *Heap) Peek() *Node {
 	if len(h.data) > 0 {
 		return h.data[0]
 	} else {
@@ -18,21 +18,21 @@ func (h *Heap) peek() *node {
 	}
 }
 
-func (h *Heap) compare(current *node, other *node) bool {
+func (h *Heap) compare(current *Node, other *Node) bool {
 	if h.priority == "min" {
 		// in a min heap,
 			// keep swapping when this is true during the enqueue
 			// and stop swapping when this is true in the denqueue reorder
-		return other.value > current.value
+		return other.Value > current.Value
 	} else {
 		// in a max heap,
 			// keep swapping when this is true during the enqueue
 			// and stop swapping when this is true in the denqueue reorder
-		return other.value < current.value
+		return other.Value < current.Value
 	}
 }
 
-func (h *Heap) enqueue(node *node) {
+func (h *Heap) Enqueue(node *Node) {
  	h.data = append(h.data, node)
 
 	currentNode := len(h.data) - 1
@@ -55,7 +55,7 @@ func (h *Heap) enqueue(node *node) {
 	}
 }
 
-func (h *Heap) dequeue () *node {
+func (h *Heap) Dequeue () *Node {
 	if !(len(h.data) > 0) {
 		return nil
 	}
@@ -112,7 +112,7 @@ func (h *Heap) getChildren(index int) (int, int) {
 	return (2 * index + 1), (2 * index + 2)
 }
 
-func (h *Heap) get(index int) *node {
+func (h *Heap) get(index int) *Node {
 	if index >= len(h.data) {
 		return nil
 	} else {

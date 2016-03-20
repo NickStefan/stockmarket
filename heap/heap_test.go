@@ -13,23 +13,23 @@ func Test(t *testing.T){
 		aHeap := Heap{}
 
 		g.Before(func(){
-			aHeap.enqueue(&node{value:1.00, lookup:"bob" })
-			aHeap.enqueue(&node{value:2.05, lookup:"bob" })
-			aHeap.enqueue(&node{value:2.00, lookup:"bob" })
-			aHeap.enqueue(&node{value:1.55, lookup:"bob" })
-			aHeap.enqueue(&node{value:0.80, lookup:"bob" })
+			aHeap.Enqueue(&Node{Value:1.00, Lookup:"bob" })
+			aHeap.Enqueue(&Node{Value:2.05, Lookup:"bob" })
+			aHeap.Enqueue(&Node{Value:2.00, Lookup:"bob" })
+			aHeap.Enqueue(&Node{Value:1.55, Lookup:"bob" })
+			aHeap.Enqueue(&Node{Value:0.80, Lookup:"bob" })
 		})
 
-		g.It("should peek the priority node", func(){
-			g.Assert(aHeap.peek().value).Equal(2.05)
+		g.It("should peek the priority Node", func(){
+			g.Assert(aHeap.Peek().Value).Equal(2.05)
 		})
 
-		g.It("should dequeue nodes in priority order when dequeing", func(){
-			g.Assert(aHeap.dequeue().value).Equal(2.05)
-			g.Assert(aHeap.dequeue().value).Equal(2.00)
-			g.Assert(aHeap.dequeue().value).Equal(1.55)
-			g.Assert(aHeap.dequeue().value).Equal(1.00)
-			g.Assert(aHeap.dequeue().value).Equal(0.80)
+		g.It("should dequeue Nodes in priority order when dequeing", func(){
+			g.Assert(aHeap.Dequeue().Value).Equal(2.05)
+			g.Assert(aHeap.Dequeue().Value).Equal(2.00)
+			g.Assert(aHeap.Dequeue().Value).Equal(1.55)
+			g.Assert(aHeap.Dequeue().Value).Equal(1.00)
+			g.Assert(aHeap.Dequeue().Value).Equal(0.80)
 		})
 	})
 
@@ -37,23 +37,23 @@ func Test(t *testing.T){
 		aHeap := Heap{priority:"min"}
 
 		g.Before(func(){
-			aHeap.enqueue(&node{value:1.00, lookup:"bob" })
-			aHeap.enqueue(&node{value:2.05, lookup:"bob" })
-			aHeap.enqueue(&node{value:2.00, lookup:"bob" })
-			aHeap.enqueue(&node{value:1.55, lookup:"bob" })
-			aHeap.enqueue(&node{value:0.80, lookup:"bob" })
+			aHeap.Enqueue(&Node{Value:1.00, Lookup:"bob" })
+			aHeap.Enqueue(&Node{Value:2.05, Lookup:"bob" })
+			aHeap.Enqueue(&Node{Value:2.00, Lookup:"bob" })
+			aHeap.Enqueue(&Node{Value:1.55, Lookup:"bob" })
+			aHeap.Enqueue(&Node{Value:0.80, Lookup:"bob" })
 		})
 
-		g.It("should peek the priority node", func(){
-			g.Assert(aHeap.peek().value).Equal(0.80)
+		g.It("should peek the priority Node", func(){
+			g.Assert(aHeap.Peek().Value).Equal(0.80)
 		})
 
-		g.It("should dequeue nodes in priority order when dequeing", func(){
-			g.Assert(aHeap.dequeue().value).Equal(0.80)
-			g.Assert(aHeap.dequeue().value).Equal(1.00)
-			g.Assert(aHeap.dequeue().value).Equal(1.55)
-			g.Assert(aHeap.dequeue().value).Equal(2.00)
-			g.Assert(aHeap.dequeue().value).Equal(2.05)
+		g.It("should dequeue Nodes in priority order when dequeing", func(){
+			g.Assert(aHeap.Dequeue().Value).Equal(0.80)
+			g.Assert(aHeap.Dequeue().Value).Equal(1.00)
+			g.Assert(aHeap.Dequeue().Value).Equal(1.55)
+			g.Assert(aHeap.Dequeue().Value).Equal(2.00)
+			g.Assert(aHeap.Dequeue().Value).Equal(2.05)
 		})
 	})
 
