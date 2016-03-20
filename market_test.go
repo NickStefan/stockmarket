@@ -110,6 +110,17 @@ func Test(t *testing.T){
 
 			g.It("should fill the highest priority orders until no more can be filled", func(){
 
+				orderBook := NewOrderBook()
+
+				for i :=0; i < len(orders); i++ {
+					orderBook.add(orders[i])
+				}
+
+				// filling orders will dequeue filled orders,
+				// so expect further down the line orders when dequeueing
+				orderBook.run()
+				g.Assert(orderBook.buyQueue.Dequeue().Value).Equal(10.05)
+				g.Assert(orderBook.sellQueue.Dequeue().Value).Equal(10.10)
 			})
 
 			g.It("should be resilient after repeated adds and fills", func(){

@@ -108,6 +108,10 @@ func (o *OrderBook) add(order Order) {
 	}
 }
 
+func (o *OrderBook) run() {
+
+}
+
 // whats an algorithm to match buyers with sellers? simple case just using market orders
 
 // orderBook.add( *order ) 
