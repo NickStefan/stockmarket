@@ -78,4 +78,18 @@ func Test(t *testing.T){
 			})
 		})
 	})
+
+	g.Describe("OrderBook", func(){
+		g.It("should add orders to the correct queues and hashes", func(){
+
+		})
+
+		g.It("should fill the highest priority orders until no more can be filled", func(){
+
+		})
+
+		g.It("should be resilient after repeated adds and fills", func(){
+
+		})
+	})
 }
