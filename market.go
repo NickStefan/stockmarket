@@ -81,11 +81,16 @@ type OrderBook struct {
 	sellHash map[string]*Order
 }
 
-func (o *OrderBook) add(order Order) {
-	if o.buyHash == nil && o.sellHash == nil {
-		o.buyHash = make(map[string]*Order)
-		o.sellHash = make(map[string]*Order)
+func NewOrderBook() *OrderBook {
+	return &OrderBook{
+		buyHash: make(map[string]*Order),
+		sellHash: make(map[string]*Order),
+		buyQueue: heap.Heap{Priority: "Max"},
+		sellQueue: heap.Heap{Priority: "Min"},
 	}
+}
+
+func (o *OrderBook) add(order Order) {
 
 	if order.getOrder().intent == "BUY" {
 		o.buyHash[order.lookup()] = &order
@@ -93,9 +98,8 @@ func (o *OrderBook) add(order Order) {
 			Value: order.price(),
 			Lookup: order.lookup(), 
 		})
-		
+
 	} else if order.getOrder().intent == "SELL" {
-		fmt.Println(order.lookup())
 		o.sellHash[order.lookup()] = &order
 		o.sellQueue.Enqueue(&heap.Node{
 			Value: order.price(),
@@ -146,7 +150,7 @@ func (o *OrderBook) add(order Order) {
 // we remove it only then
 
 func main() {
-	orderBook := OrderBook{}
+	orderBook := NewOrderBook()
 
 	anOrder := SellLimit{
 		ask: 10.05, 

@@ -6,7 +6,7 @@ type Node struct {
 }
 
 type Heap struct {
-	priority string
+	Priority string
 	data []*Node
 }
 
@@ -19,7 +19,7 @@ func (h *Heap) Peek() *Node {
 }
 
 func (h *Heap) compare(current *Node, other *Node) bool {
-	if h.priority == "min" {
+	if h.Priority == "min" {
 		// in a min heap,
 			// keep swapping when this is true during the enqueue
 			// and stop swapping when this is true in the denqueue reorder
