@@ -1,5 +1,9 @@
 package heap
 
+import (
+	"fmt"
+)
+
 type Node struct {
 	Value float64
 	Lookup string
@@ -57,6 +61,7 @@ func (h *Heap) Enqueue(node *Node) {
 
 func (h *Heap) Dequeue () *Node {
 	if !(len(h.data) > 0) {
+		fmt.Println("null!")
 		return nil
 	}
 	dequeued := h.data[0]

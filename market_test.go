@@ -123,8 +123,21 @@ func Test(t *testing.T){
 				g.Assert(orderBook.sellQueue.Dequeue().Value).Equal(10.10)
 			})
 
-			g.It("should be resilient after repeated adds and fills", func(){
+			g.It("should work with repeated calls to add and run", func(){
+				orderBook := NewOrderBook()
 
+				for i :=0; i < len(orders); i++ {
+					orderBook.add(orders[i])
+				}
+
+				orderBook.run()
+
+				orderBook.add(orders[1])
+
+				orderBook.run()
+
+				g.Assert(orderBook.buyQueue.Dequeue().Value).Equal(10.00)
+				g.Assert(orderBook.sellQueue.Dequeue() == nil).Equal(true)
 			})
 		})
 

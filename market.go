@@ -96,7 +96,7 @@ func (o *OrderBook) add(order Order) {
 		o.buyHash[order.lookup()] = &order
 		o.buyQueue.Enqueue(&heap.Node{
 			Value: order.price(),
-			Lookup: order.lookup(), 
+			Lookup: order.lookup(),
 		})
 
 	} else if order.getOrder().intent == "SELL" {
@@ -109,11 +109,20 @@ func (o *OrderBook) add(order Order) {
 }
 
 func (o *OrderBook) run() {
-	for o.buyQueue.Peek().Value >= o.sellQueue.Peek().Value {
+	buyTop := o.buyQueue.Peek()
+	sellTop := o.sellQueue.Peek()
+	
+	for (buyTop != nil && sellTop != nil && buyTop.Value >= sellTop.Value) {
 		o.buyQueue.Dequeue()
 		o.sellQueue.Dequeue()
+		buyTop = o.buyQueue.Peek()
+		sellTop = o.sellQueue.Peek()
 	}
 }
+
+// cancel orders???
+// break orders up???
+// what should we do with the orders once dequeue'd? go to some sort of accounts fufill method?
 
 // whats an algorithm to match buyers with sellers? simple case just using market orders
 
