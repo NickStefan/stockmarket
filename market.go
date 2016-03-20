@@ -16,8 +16,8 @@ import (
 type BaseOrder struct {
 	shares int
 	actor string // BOB
-	intent string // BUY SELL
-	state string // OPEN FILLED CANCELED
+	intent string // BUY || SELL
+	state string // OPEN || FILLED || CANCELED
 	timecreated string
 	timeclosed string
 }
@@ -48,7 +48,7 @@ type SellMarket struct {
 	BaseOrder
 }
 
-// create a consistent price interface for the differen types of orders
+// create a consistent interface for the different types of orders
 
 type Order interface {
 	price() float64
@@ -65,11 +65,11 @@ func (s SellLimit) price() float64 {
 }
 
 func (b BuyMarket) price() float64 {
-	return 1000000000
+	return 1000000.00
 }
 
 func (s SellMarket) price() float64 {
-	return 0
+	return 0.00
 }
 
 // how does a stock market organize the orders? Depth of Market or OrderBook
