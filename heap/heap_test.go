@@ -10,7 +10,7 @@ func Test(t *testing.T){
 
 	g.Describe("Max Heap", func(){
 
-		aHeap := Heap{Priority:"Max"}
+		aHeap := Heap{Priority:"max"}
 
 		g.Before(func(){
 			aHeap.Enqueue(&Node{Value:1.00, Lookup:"bob" })

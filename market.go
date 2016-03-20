@@ -85,8 +85,8 @@ func NewOrderBook() *OrderBook {
 	return &OrderBook{
 		buyHash: make(map[string]*Order),
 		sellHash: make(map[string]*Order),
-		buyQueue: heap.Heap{Priority: "Max"},
-		sellQueue: heap.Heap{Priority: "Min"},
+		buyQueue: heap.Heap{Priority: "max"},
+		sellQueue: heap.Heap{Priority: "min"},
 	}
 }
 
