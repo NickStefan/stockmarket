@@ -86,7 +86,7 @@ func (h *Heap) dequeue () *node {
 			minChild = leftChild
 		
 		} else if rightChildNode != nil && leftChildNode != nil {
-			if leftChildNode.value > rightChildNode.value {
+			if h.compare(leftChildNode, rightChildNode) {
 				minChild = leftChild
 			} else {
 				minChild = rightChild
