@@ -126,6 +126,9 @@ func (o *OrderBook) run() {
 	
 	for (buyTop != nil && sellTop != nil && buyTop.Value >= sellTop.Value) {
 		
+
+
+		
 		o.handleTrade( *(o.buyHash[  o.buyQueue.Dequeue().Lookup  ]) )
 		o.handleTrade( *(o.sellHash[ o.sellQueue.Dequeue().Lookup ]) )
 		
@@ -175,6 +178,6 @@ func main() {
 	orderBook.add(anotherOrder)
 	orderBook.run()
 
-	// fmt.Println(orderBook.buyHash)
-	// fmt.Println(orderBook.sellHash)
+	fmt.Println(orderBook.buyHash)
+	fmt.Println(orderBook.sellHash)
 }
