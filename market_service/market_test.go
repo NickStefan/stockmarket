@@ -162,9 +162,12 @@ func Test(t *testing.T){
 				orderBook.add(orders[0])
 				orderBook.add(orders[3])
 				orderBook.run()
-				// fmt.Println(orderBook.buyHash)
-				// fmt.Println(orderBook.sellHash)
 			})
+
+			g.It("should partially fill orders when the share numbers dont match", func(){
+				
+			})
+			
 		})
 
 	})

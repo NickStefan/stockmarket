@@ -129,6 +129,7 @@ func (o *OrderBook) run() {
 		// HOW to handle partial order fills?
 
 		// get each top priority node, (we already know theyre a match)
+		// create trade needs to have info for both buy and sell
 		
 		// if buy.shares == sell.shares
 		//		create trade and give to trade handler
