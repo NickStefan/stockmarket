@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-	"github.com/nickstefan/market/heap"
+	"github.com/nickstefan/market/market_service/heap"
 	"bytes"
 	"encoding/json"
 	"net/http"
