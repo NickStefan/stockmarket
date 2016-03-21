@@ -126,9 +126,27 @@ func (o *OrderBook) run() {
 	
 	for (buyTop != nil && sellTop != nil && buyTop.Value >= sellTop.Value) {
 		
+		// HOW to handle partial order fills?
 
-
+		// get each top priority node, (we already know theyre a match)
 		
+		// if buy.shares == sell.shares
+		//		create trade and give to trade handler
+		//		dequeue both buy and sell from heaps
+		//		delete buy and sell orders from hash
+
+		// if buy.shares < sell.shares
+		//		create trade with # from buy.shares
+		//		dequeue buy from heap
+		//		delete buy order from hash
+		//		sell.shares = sell.shares - buy.shares 
+
+		// if buy.shares > sell.shares
+		//		create trade with # from sell.shares
+		//		dequeue sell from heap
+		//		delete sell order from hash
+		//		buy.shares = buy.shares - sell.shares
+
 		o.handleTrade( *(o.buyHash[  o.buyQueue.Dequeue().Lookup  ]) )
 		o.handleTrade( *(o.sellHash[ o.sellQueue.Dequeue().Lookup ]) )
 		
