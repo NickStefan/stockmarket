@@ -87,6 +87,7 @@ type tradehandler func(Order) Order
 
 func NewOrderBook() *OrderBook {
 	return &OrderBook{
+		handleTrade: func(o Order) Order { return o },
 		buyHash: make(map[string]*Order),
 		sellHash: make(map[string]*Order),
 		buyQueue: heap.Heap{Priority: "max"},
@@ -122,13 +123,8 @@ func (o *OrderBook) run() {
 	
 	for (buyTop != nil && sellTop != nil && buyTop.Value >= sellTop.Value) {
 		
-		if o.handleTrade != nil {
-			o.handleTrade( *(o.buyHash[  o.buyQueue.Dequeue().Lookup  ]) )
-			o.handleTrade( *(o.sellHash[ o.sellQueue.Dequeue().Lookup ]) )
-		} else {
-			o.buyQueue.Dequeue()
-			o.sellQueue.Dequeue()
-		}
+		o.handleTrade( *(o.buyHash[  o.buyQueue.Dequeue().Lookup  ]) )
+		o.handleTrade( *(o.sellHash[ o.sellQueue.Dequeue().Lookup ]) )
 		
 		buyTop = o.buyQueue.Peek()
 		sellTop = o.sellQueue.Peek()
