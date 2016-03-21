@@ -151,13 +151,12 @@ func Test(t *testing.T){
 				
 				orderBook := NewOrderBook()
 
-				orderBook.setTradeHandler(func (o Order) Order {
+				orderBook.setTradeHandler(func (o Order) {
 					if o.getOrder().intent == "BUY"{
 						g.Assert(o.price()).Equal(10.05)
 					} else {
 						g.Assert(o.price()).Equal(0.00)
 					}
-					return o
 				})
 
 				orderBook.add(orders[0])

@@ -5,6 +5,9 @@ import (
 	"strconv"
 	"time"
 	"github.com/nickstefan/market/heap"
+	"bytes"
+	"encoding/json"
+	"net/http"
 )
 
 // what makes up a stock market? competing buy and sell orders
@@ -83,11 +86,11 @@ type OrderBook struct {
 	sellHash map[string]*Order
 }
 
-type tradehandler func(Order) Order
+type tradehandler func(Order)
 
 func NewOrderBook() *OrderBook {
 	return &OrderBook{
-		handleTrade: func(o Order) Order { return o },
+		handleTrade: func(o Order) { },
 		buyHash: make(map[string]*Order),
 		sellHash: make(map[string]*Order),
 		buyQueue: heap.Heap{Priority: "max"},
@@ -131,53 +134,27 @@ func (o *OrderBook) run() {
 	}
 }
 
-// cancel orders???
-// break orders up???
-// what should we do with the orders once dequeue'd? go to some sort of accounts fufill method?
 
-// whats an algorithm to match buyers with sellers? simple case just using market orders
-
-// orderBook.add( *order ) 
-// puts the order into the buy or sell sub data structures
-// then the order book attempts to fill that order
-// if can fulfill
-//    fills order, and removes the buy and sell orders that were affected by the fill
-// 
-// repeat on every orderBook.add( *order )
-
-// orderBook.remove( *order )
-// removes order from proper sub data structure
-
-// so what does it mean to fill an order, and how could two data structures help us do that?
-
-// an overlap between two heaps prioritized by price?
-// but do we need constant time access to things deep inside the heap,
-// due to order remove()?
-// no, we mainly just need to pull things from the top of the buy heap and sell heap
-
-// filling an order could be as simple as peeking at the buy heap and sell heap
-// and asking if buy heap limit >= sell heap limit
-
-// what about market orders? how would they prioritize into the heaps?
-// do we need 4 heaps? or would market orders just always have priority?
-
-// I think two heaps with market having highest priority works
-
-// how would a limit order ever get filled if market is always higher priority?
-// say the highest buy order is for 1000 shares limit $10.00,
-// say the highest sell order is a market for 100 shares
-// say the next highest sell order is a limit for 600 at $9.98.
-
-// the trade would get partially filled at 100 shares @ $10.00 and
-// 600 shares @ 9.99
-
-// we can avoid having to traverse the heap to cancel things
-// because were going to have a lookup hash where we store actual orders
-// constant time cancelation, if the top of the heap gets looked up as canceled
-// we remove it only then
+type Trade struct {
+	Actor string
+	Shares int
+	Price float64
+}
 
 func main() {
+
 	orderBook := NewOrderBook()
+
+	orderBook.setTradeHandler(func (o Order) {
+		fmt.Println("hello handler")
+		url := "http://localhost:8000"
+		trade, err := json.Marshal(Trade{Actor: o.getOrder().actor, Shares: o.getOrder().shares, Price: o.price() })
+		resp, err := http.Post(url, "application/json", bytes.NewBuffer(trade))
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("response Status:", resp.Status)
+	})
 
 	anOrder := SellLimit{
 		ask: 10.05, 
@@ -188,7 +165,7 @@ func main() {
 	}
 
 	anotherOrder := BuyLimit{
-		bid: 10.00, 
+		bid: 10.10, 
 		BaseOrder:BaseOrder{
 			actor: "Bob", timecreated: time.Now().Unix(),
 			intent: "BUY", shares: 100, state: "OPEN",
@@ -196,7 +173,8 @@ func main() {
 	}
 	orderBook.add(anOrder)
 	orderBook.add(anotherOrder)
+	orderBook.run()
 
-	fmt.Println(orderBook.buyHash)
-	fmt.Println(orderBook.sellHash)
+	// fmt.Println(orderBook.buyHash)
+	// fmt.Println(orderBook.sellHash)
 }
