@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"strconv"
+	"time"
 	"github.com/nickstefan/market/heap"
 )
 
@@ -18,12 +20,11 @@ type BaseOrder struct {
 	actor string // BOB
 	intent string // BUY || SELL
 	state string // OPEN || FILLED || CANCELED
-	timecreated string
-	timeclosed string
+	timecreated int64 // unix time
 }
 
 func (b BaseOrder) lookup() string {
-	return b.actor + b.timecreated
+	return b.actor + strconv.FormatInt(b.timecreated, 10)
 }
 
 func (b BaseOrder) getOrder() BaseOrder {
@@ -75,11 +76,14 @@ func (s SellMarket) price() float64 {
 // how does a stock market organize the orders? Depth of Market or OrderBook
 
 type OrderBook struct {
+	handleTrade tradehandler
 	buyQueue heap.Heap
 	sellQueue heap.Heap
 	buyHash map[string]*Order
 	sellHash map[string]*Order
 }
+
+type tradehandler func(Order) Order
 
 func NewOrderBook() *OrderBook {
 	return &OrderBook{
@@ -88,6 +92,10 @@ func NewOrderBook() *OrderBook {
 		buyQueue: heap.Heap{Priority: "max"},
 		sellQueue: heap.Heap{Priority: "min"},
 	}
+}
+
+func (o *OrderBook) setTradeHandler(execTrade tradehandler) {
+	o.handleTrade = execTrade
 }
 
 func (o *OrderBook) add(order Order) {
@@ -113,8 +121,15 @@ func (o *OrderBook) run() {
 	sellTop := o.sellQueue.Peek()
 	
 	for (buyTop != nil && sellTop != nil && buyTop.Value >= sellTop.Value) {
-		o.buyQueue.Dequeue()
-		o.sellQueue.Dequeue()
+		
+		if o.handleTrade != nil {
+			o.handleTrade( *(o.buyHash[  o.buyQueue.Dequeue().Lookup  ]) )
+			o.handleTrade( *(o.sellHash[ o.sellQueue.Dequeue().Lookup ]) )
+		} else {
+			o.buyQueue.Dequeue()
+			o.sellQueue.Dequeue()
+		}
+		
 		buyTop = o.buyQueue.Peek()
 		sellTop = o.sellQueue.Peek()
 	}
@@ -171,16 +186,16 @@ func main() {
 	anOrder := SellLimit{
 		ask: 10.05, 
 		BaseOrder:BaseOrder{
-			actor: "Tim", timecreated: "9:58am", intent: "SELL",
-			shares: 100, state: "OPEN",
+			actor: "Tim", timecreated: time.Now().Unix(),
+			intent: "SELL", shares: 100, state: "OPEN",
 		},
 	}
 
 	anotherOrder := BuyLimit{
 		bid: 10.00, 
 		BaseOrder:BaseOrder{
-			actor: "Bob", timecreated: "10:00am", intent: "BUY",
-			shares: 100, state: "OPEN",
+			actor: "Bob", timecreated: time.Now().Unix(),
+			intent: "BUY", shares: 100, state: "OPEN",
 		},
 	}
 	orderBook.add(anOrder)

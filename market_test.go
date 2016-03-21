@@ -2,8 +2,54 @@ package main
 
 import (
 	"testing"
+	"time"
+	// "fmt"
 	. "github.com/franela/goblin"
 )
+
+func createDummyOrders(n int64) [6]Order {
+	return [6]Order{
+				BuyLimit{
+					bid: 10.05, 
+					BaseOrder:BaseOrder{
+						actor: "Bob", timecreated: time.Now().Unix() + n, 
+						intent: "BUY", shares: 100, state: "OPEN",
+					},
+				},
+				BuyMarket{
+					BaseOrder:BaseOrder{
+						actor: "Tim", timecreated: time.Now().Unix() + n,
+						intent: "BUY", shares: 100, state: "OPEN",
+					},
+				},
+				BuyLimit{
+					bid: 10.00, 
+					BaseOrder:BaseOrder{
+						actor: "Gary", timecreated: time.Now().Unix() + n,
+						intent: "BUY", shares: 100, state: "OPEN",
+					},
+				},
+				SellMarket{
+					BaseOrder:BaseOrder{
+						actor: "Terry", timecreated: time.Now().Unix() + n,
+						intent: "SELL", shares: 100, state: "OPEN",
+					},
+				},
+				SellLimit{
+					ask: 10.10, 
+					BaseOrder:BaseOrder{
+						actor: "Larry", timecreated: time.Now().Unix() + n,
+						intent: "SELL", shares: 100, state: "OPEN",
+					},
+				},
+				SellMarket{
+					BaseOrder:BaseOrder{
+						actor: "Sam", timecreated: time.Now().Unix() + n,
+						intent: "SELL", shares: 100, state: "OPEN",
+					},
+				},
+			}
+}
 
 func Test(t *testing.T){
 	g := Goblin(t)
@@ -11,50 +57,11 @@ func Test(t *testing.T){
 	g.Describe("Orders", func(){
 
 		var orders [6]Order
+		var moreOrders [6]Order
 
 		g.BeforeEach(func(){
-			
-			orders = [6]Order{
-				BuyLimit{
-					bid: 10.05, 
-					BaseOrder:BaseOrder{
-						actor: "Bob", timecreated: "10:00am", intent: "BUY",
-						shares: 100, state: "OPEN",
-					},
-				},
-				BuyMarket{
-					BaseOrder:BaseOrder{
-						actor: "Tim", timecreated: "9:58am", intent: "BUY",
-						shares: 100, state: "OPEN",
-					},
-				},
-				BuyLimit{
-					bid: 10.00, 
-					BaseOrder:BaseOrder{
-						actor: "Bob", timecreated: "10:00am", intent: "BUY",
-						shares: 100, state: "OPEN",
-					},
-				},
-				SellMarket{
-					BaseOrder:BaseOrder{
-						actor: "Tim", timecreated: "9:58am", intent: "SELL",
-						shares: 100, state: "OPEN",
-					},
-				},
-				SellLimit{
-					ask: 10.10, 
-					BaseOrder:BaseOrder{
-						actor: "Tim", timecreated: "9:58am", intent: "SELL",
-						shares: 100, state: "OPEN",
-					},
-				},
-				SellMarket{
-					BaseOrder:BaseOrder{
-						actor: "Tim", timecreated: "9:58am", intent: "SELL",
-						shares: 100, state: "OPEN",
-					},
-				},
-			}
+			orders = createDummyOrders(0)
+			moreOrders = createDummyOrders(1)
 		})
 
 		g.Describe("Order Interface", func(){
@@ -79,7 +86,7 @@ func Test(t *testing.T){
 
 			g.Describe("lookup method", func(){
 				g.It("should equal actor + createtime", func(){
-					g.Assert(orders[0].lookup()).Equal("Bob10:00am")
+					g.Assert(orders[0].lookup()[:3]).Equal("Bob")
 				})
 			})
 
@@ -139,53 +146,33 @@ func Test(t *testing.T){
 				g.Assert(orderBook.buyQueue.Dequeue().Value).Equal(10.00)
 				g.Assert(orderBook.sellQueue.Dequeue() == nil).Equal(true)
 			})
+
+			g.It("should call tradeHandler with matched orders", func(){
+				
+				orderBook := NewOrderBook()
+
+				orderBook.setTradeHandler(func (o Order) Order {
+					if o.getOrder().intent == "BUY"{
+						g.Assert(o.price()).Equal(10.05)
+					} else {
+						g.Assert(o.price()).Equal(0.00)
+					}
+					return o
+				})
+
+				orderBook.add(orders[0])
+				orderBook.add(orders[3])
+				orderBook.run()
+				// fmt.Println(orderBook.buyHash)
+				// fmt.Println(orderBook.sellHash)
+			})
 		})
 
 	})
 }
 
 // BENCHMARKS
-var benchOrders = [6]Order{
-	BuyLimit{
-		bid: 10.05, 
-		BaseOrder:BaseOrder{
-			actor: "Bob", timecreated: "10:00am", intent: "BUY",
-			shares: 100, state: "OPEN",
-		},
-	},
-	BuyMarket{
-		BaseOrder:BaseOrder{
-			actor: "Tim", timecreated: "9:58am", intent: "BUY",
-			shares: 100, state: "OPEN",
-		},
-	},
-	BuyLimit{
-		bid: 10.00, 
-		BaseOrder:BaseOrder{
-			actor: "Bob", timecreated: "10:00am", intent: "BUY",
-			shares: 100, state: "OPEN",
-		},
-	},
-	SellMarket{
-		BaseOrder:BaseOrder{
-			actor: "Tim", timecreated: "9:58am", intent: "SELL",
-			shares: 100, state: "OPEN",
-		},
-	},
-	SellLimit{
-		ask: 10.10, 
-		BaseOrder:BaseOrder{
-			actor: "Tim", timecreated: "9:58am", intent: "SELL",
-			shares: 100, state: "OPEN",
-		},
-	},
-	SellMarket{
-		BaseOrder:BaseOrder{
-			actor: "Tim", timecreated: "9:58am", intent: "SELL",
-			shares: 100, state: "OPEN",
-		},
-	},
-}
+var benchOrders = createDummyOrders(0)
 
 var result float64
 
