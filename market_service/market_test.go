@@ -7,8 +7,8 @@ import (
 	. "github.com/franela/goblin"
 )
 
-func createDummyOrders(n int64) [6]Order {
-	return [6]Order{
+func createDummyOrders(n int64) [7]Order {
+	return [7]Order{
 				BuyLimit{
 					bid: 10.05, 
 					BaseOrder:BaseOrder{
@@ -48,6 +48,13 @@ func createDummyOrders(n int64) [6]Order {
 						intent: "SELL", shares: 100, state: "OPEN",
 					},
 				},
+				BuyLimit{
+					bid: 10.05, 
+					BaseOrder:BaseOrder{
+						actor: "Sally", timecreated: time.Now().Unix() + n, 
+						intent: "BUY", shares: 80, state: "OPEN",
+					},
+				},
 			}
 }
 
@@ -56,8 +63,8 @@ func Test(t *testing.T){
 
 	g.Describe("Orders", func(){
 
-		var orders [6]Order
-		var moreOrders [6]Order
+		var orders [7]Order
+		var moreOrders [7]Order
 
 		g.BeforeEach(func(){
 			orders = createDummyOrders(0)
@@ -102,7 +109,7 @@ func Test(t *testing.T){
 			g.It("should add orders to the correct queues and hashes", func(){
 				orderBook := NewOrderBook()
 
-				for i := 0; i < len(orders); i++ {
+				for i := 0; i < 6; i++ {
 					orderBook.add(orders[i])
 				}
 
@@ -119,7 +126,7 @@ func Test(t *testing.T){
 
 				orderBook := NewOrderBook()
 
-				for i :=0; i < len(orders); i++ {
+				for i :=0; i < 6; i++ {
 					orderBook.add(orders[i])
 				}
 
@@ -133,7 +140,7 @@ func Test(t *testing.T){
 			g.It("should work with repeated calls to add and run", func(){
 				orderBook := NewOrderBook()
 
-				for i :=0; i < len(orders); i++ {
+				for i :=0; i < 6; i++ {
 					orderBook.add(orders[i])
 				}
 
@@ -165,7 +172,16 @@ func Test(t *testing.T){
 			})
 
 			g.It("should partially fill orders when the share numbers dont match", func(){
+				orderBook := NewOrderBook()
 				
+				// set one order to be smaller than the other
+				orderBook.add(orders[6])
+				orderBook.add(orders[3])
+				orderBook.run()
+
+				var lookup = orderBook.sellQueue.Peek().Lookup
+				var thing = (orderBook.sellHash[lookup])
+				g.Assert(thing).Equal(20)
 			})
 			
 		})
@@ -182,7 +198,7 @@ func BenchmarkOrderBookRun(b *testing.B){
 
 	orderBook := NewOrderBook()
 
-	for i :=0; i < len(benchOrders); i++ {
+	for i :=0; i < 6; i++ {
 		orderBook.add(benchOrders[i])
 	}
 
