@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
-	// "reflect"
 )
 
 // what makes up a stock market? competing buy and sell orders
@@ -22,7 +21,8 @@ import (
 type BaseOrder struct {
 	shares int
 	actor string // BOB
-	intent string // BUYMARKET || BUYLIMIT || SELLMARKET || BUYMARKET
+	intent string // BUY || SELL
+	kind string // MARKET || LIMIT
 	state string // OPEN || FILLED || CANCELED
 	timecreated int64 // unix time
 }
@@ -35,8 +35,13 @@ func (b *BaseOrder) getOrder() *BaseOrder {
 	return b
 }
 
-func (b *BaseOrder) partialFill(newShares int) {
+func (b *BaseOrder) partialFill(price float64, newShares int) Trade {
 	b.shares = newShares
+	return Trade{Actor: b.actor, Shares: b.shares - newShares, Price: price, Intent: b.intent }
+}
+
+func (b *BaseOrder) fill(price float64) Trade {
+	return Trade{Actor: b.actor, Shares: b.shares, Price: price, Intent: b.intent}
 }
 
 type BuyLimit struct {
@@ -63,7 +68,8 @@ type Order interface {
 	price() float64
 	lookup() string
 	getOrder() *BaseOrder
-	partialFill(int)
+	partialFill(price float64, newShares int) Trade
+	fill(price float64) Trade
 }
 
 func (b BuyLimit) price() float64 {
@@ -92,11 +98,11 @@ type OrderBook struct {
 	sellHash map[string]*Order
 }
 
-type tradehandler func(Order)
+type tradehandler func(Trade)
 
 func NewOrderBook() *OrderBook {
 	return &OrderBook{
-		handleTrade: func(o Order) { },
+		handleTrade: func(t Trade) { },
 		buyHash: make(map[string]*Order),
 		sellHash: make(map[string]*Order),
 		buyQueue: heap.Heap{Priority: "max"},
@@ -136,56 +142,36 @@ func (o *OrderBook) run() {
 		sell := *(o.sellHash[ sellTop.Lookup ])
 
 		if buy.getOrder().shares == sell.getOrder().shares {
-			o.handleTrade( *(o.buyHash[  o.buyQueue.Dequeue().Lookup  ]) )
-			o.handleTrade( *(o.sellHash[ o.sellQueue.Dequeue().Lookup ]) )
+			o.buyQueue.Dequeue()
+			o.sellQueue.Dequeue()
+
+			price := buy.price()
+			o.handleTrade(buy.fill(price))
+			o.handleTrade(sell.fill(sell.price()))
+			
 			delete(o.buyHash, buyTop.Lookup)
 			delete(o.sellHash, sellTop.Lookup)
 
 		} else if buy.getOrder().shares < sell.getOrder().shares {
-			//	create trade with # from buy.shares
-			
-			o.handleTrade( *(o.buyHash[  o.buyQueue.Dequeue().Lookup  ]) )
- 
+			o.buyQueue.Dequeue()
 			remainderSell := sell.getOrder().shares - buy.getOrder().shares
-			sell.partialFill(remainderSell)
-
+			
+			price := buy.price()
+			o.handleTrade(buy.fill(price))
+			o.handleTrade(sell.partialFill(sell.price(), remainderSell))
+ 
 			delete(o.buyHash, buyTop.Lookup)
 		
 		} else if buy.getOrder().shares > sell.getOrder().shares {
-			//	create trade with # from sell.shares
-			
-			o.handleTrade( *(o.sellHash[ o.sellQueue.Dequeue().Lookup ]) )
-			
+			o.sellQueue.Dequeue()
 			remainderBuy := buy.getOrder().shares - sell.getOrder().shares
-			buy.partialFill(remainderBuy)
+			
+			price := buy.price()
+			o.handleTrade(sell.fill(sell.price()))
+			o.handleTrade(buy.partialFill(price, remainderBuy))
 
 			delete(o.sellHash, sellTop.Lookup)
 		}
-
-		// HOW to handle partial order fills?
-
-		// get each top priority node, (we already know theyre a match)
-		// create trade needs to have info for both buy and sell
-		
-		// if buy.shares == sell.shares
-		//		create trade and give to trade handler
-		//		dequeue both buy and sell from heaps
-		//		delete buy and sell orders from hash
-
-		// if buy.shares < sell.shares
-		//		create trade with # from buy.shares
-		//		dequeue buy from heap
-		//		delete buy order from hash
-		//		sell.shares = sell.shares - buy.shares 
-
-		// if buy.shares > sell.shares
-		//		create trade with # from sell.shares
-		//		dequeue sell from heap
-		//		delete sell order from hash
-		//		buy.shares = buy.shares - sell.shares
-
-		// o.handleTrade( *(o.buyHash[  o.buyQueue.Dequeue().Lookup  ]) )
-		// o.handleTrade( *(o.sellHash[ o.sellQueue.Dequeue().Lookup ]) )
 		
 		buyTop = o.buyQueue.Peek()
 		sellTop = o.sellQueue.Peek()
@@ -198,6 +184,7 @@ type Trade struct {
 	Shares int
 	Price float64
 	Intent string
+	Kind string
 	State  string
 }
 
@@ -205,10 +192,10 @@ func main() {
 
 	orderBook := NewOrderBook()
 
-	orderBook.setTradeHandler(func (o Order) {
+	orderBook.setTradeHandler(func (t Trade) {
 		fmt.Println("hello handler")
 		url := "http://localhost:8000"
-		trade, err := json.Marshal(Trade{Actor: o.getOrder().actor, Shares: o.getOrder().shares, Price: o.price() })
+		trade, err := json.Marshal(t)
 		resp, err := http.Post(url, "application/json", bytes.NewBuffer(trade))
 		if err != nil {
 			panic(err)
@@ -234,7 +221,4 @@ func main() {
 	orderBook.add(anOrder)
 	orderBook.add(anotherOrder)
 	orderBook.run()
-
-	// fmt.Println(orderBook.buyHash)
-	// fmt.Println(orderBook.sellHash)
 }
