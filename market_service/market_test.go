@@ -11,46 +11,46 @@ func createDummyOrders(n int64) [7]Order {
 	return [7]Order{
 				BuyLimit{
 					bid: 10.05, 
-					BaseOrder:BaseOrder{
+					BaseOrder: &BaseOrder{
 						actor: "Bob", timecreated: time.Now().Unix() + n, 
 						intent: "BUY", shares: 100, state: "OPEN",
 					},
 				},
 				BuyMarket{
-					BaseOrder:BaseOrder{
+					BaseOrder: &BaseOrder{
 						actor: "Tim", timecreated: time.Now().Unix() + n,
 						intent: "BUY", shares: 100, state: "OPEN",
 					},
 				},
 				BuyLimit{
 					bid: 10.00, 
-					BaseOrder:BaseOrder{
+					BaseOrder: &BaseOrder{
 						actor: "Gary", timecreated: time.Now().Unix() + n,
 						intent: "BUY", shares: 100, state: "OPEN",
 					},
 				},
 				SellMarket{
-					BaseOrder:BaseOrder{
+					BaseOrder: &BaseOrder{
 						actor: "Terry", timecreated: time.Now().Unix() + n,
 						intent: "SELL", shares: 100, state: "OPEN",
 					},
 				},
 				SellLimit{
 					ask: 10.10, 
-					BaseOrder:BaseOrder{
+					BaseOrder: &BaseOrder{
 						actor: "Larry", timecreated: time.Now().Unix() + n,
 						intent: "SELL", shares: 100, state: "OPEN",
 					},
 				},
 				SellMarket{
-					BaseOrder:BaseOrder{
+					BaseOrder: &BaseOrder{
 						actor: "Sam", timecreated: time.Now().Unix() + n,
 						intent: "SELL", shares: 100, state: "OPEN",
 					},
 				},
 				BuyLimit{
 					bid: 10.05, 
-					BaseOrder:BaseOrder{
+					BaseOrder: &BaseOrder{
 						actor: "Sally", timecreated: time.Now().Unix() + n, 
 						intent: "BUY", shares: 80, state: "OPEN",
 					},
@@ -180,8 +180,8 @@ func Test(t *testing.T){
 				orderBook.run()
 
 				var lookup = orderBook.sellQueue.Peek().Lookup
-				var thing = (orderBook.sellHash[lookup])
-				g.Assert(thing).Equal(20)
+				var thing = *(orderBook.sellHash[lookup])
+				g.Assert(thing.getOrder().shares).Equal(20)
 			})
 			
 		})

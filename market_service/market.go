@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	// "reflect"
 )
 
 // what makes up a stock market? competing buy and sell orders
@@ -21,35 +22,39 @@ import (
 type BaseOrder struct {
 	shares int
 	actor string // BOB
-	intent string // BUY || SELL
+	intent string // BUYMARKET || BUYLIMIT || SELLMARKET || BUYMARKET
 	state string // OPEN || FILLED || CANCELED
 	timecreated int64 // unix time
 }
 
-func (b BaseOrder) lookup() string {
+func (b *BaseOrder) lookup() string {
 	return b.actor + strconv.FormatInt(b.timecreated, 10)
 }
 
-func (b BaseOrder) getOrder() BaseOrder {
+func (b *BaseOrder) getOrder() *BaseOrder {
 	return b
+}
+
+func (b *BaseOrder) partialFill(newShares int) {
+	b.shares = newShares
 }
 
 type BuyLimit struct {
 	bid float64
-	BaseOrder
+	*BaseOrder
 }
 
 type SellLimit struct {
 	ask float64
-	BaseOrder
+	*BaseOrder
 }
 
 type BuyMarket struct {
-	BaseOrder
+	*BaseOrder
 }
 
 type SellMarket struct {
-	BaseOrder
+	*BaseOrder
 }
 
 // create a consistent interface for the different types of orders
@@ -57,7 +62,8 @@ type SellMarket struct {
 type Order interface {
 	price() float64
 	lookup() string
-	getOrder() BaseOrder
+	getOrder() *BaseOrder
+	partialFill(int)
 }
 
 func (b BuyLimit) price() float64 {
@@ -126,6 +132,36 @@ func (o *OrderBook) run() {
 	
 	for (buyTop != nil && sellTop != nil && buyTop.Value >= sellTop.Value) {
 		
+		buy := *(o.buyHash[ buyTop.Lookup ])
+		sell := *(o.sellHash[ sellTop.Lookup ])
+
+		if buy.getOrder().shares == sell.getOrder().shares {
+			o.handleTrade( *(o.buyHash[  o.buyQueue.Dequeue().Lookup  ]) )
+			o.handleTrade( *(o.sellHash[ o.sellQueue.Dequeue().Lookup ]) )
+			delete(o.buyHash, buyTop.Lookup)
+			delete(o.sellHash, sellTop.Lookup)
+
+		} else if buy.getOrder().shares < sell.getOrder().shares {
+			//	create trade with # from buy.shares
+			
+			o.handleTrade( *(o.buyHash[  o.buyQueue.Dequeue().Lookup  ]) )
+ 
+			remainderSell := sell.getOrder().shares - buy.getOrder().shares
+			sell.partialFill(remainderSell)
+
+			delete(o.buyHash, buyTop.Lookup)
+		
+		} else if buy.getOrder().shares > sell.getOrder().shares {
+			//	create trade with # from sell.shares
+			
+			o.handleTrade( *(o.sellHash[ o.sellQueue.Dequeue().Lookup ]) )
+			
+			remainderBuy := buy.getOrder().shares - sell.getOrder().shares
+			buy.partialFill(remainderBuy)
+
+			delete(o.sellHash, sellTop.Lookup)
+		}
+
 		// HOW to handle partial order fills?
 
 		// get each top priority node, (we already know theyre a match)
@@ -148,8 +184,8 @@ func (o *OrderBook) run() {
 		//		delete sell order from hash
 		//		buy.shares = buy.shares - sell.shares
 
-		o.handleTrade( *(o.buyHash[  o.buyQueue.Dequeue().Lookup  ]) )
-		o.handleTrade( *(o.sellHash[ o.sellQueue.Dequeue().Lookup ]) )
+		// o.handleTrade( *(o.buyHash[  o.buyQueue.Dequeue().Lookup  ]) )
+		// o.handleTrade( *(o.sellHash[ o.sellQueue.Dequeue().Lookup ]) )
 		
 		buyTop = o.buyQueue.Peek()
 		sellTop = o.sellQueue.Peek()
@@ -161,6 +197,8 @@ type Trade struct {
 	Actor string
 	Shares int
 	Price float64
+	Intent string
+	State  string
 }
 
 func main() {
@@ -180,7 +218,7 @@ func main() {
 
 	anOrder := SellLimit{
 		ask: 10.05, 
-		BaseOrder:BaseOrder{
+		BaseOrder: &BaseOrder{
 			actor: "Tim", timecreated: time.Now().Unix(),
 			intent: "SELL", shares: 100, state: "OPEN",
 		},
@@ -188,7 +226,7 @@ func main() {
 
 	anotherOrder := BuyLimit{
 		bid: 10.10, 
-		BaseOrder:BaseOrder{
+		BaseOrder: &BaseOrder{
 			actor: "Bob", timecreated: time.Now().Unix(),
 			intent: "BUY", shares: 100, state: "OPEN",
 		},
@@ -197,6 +235,6 @@ func main() {
 	orderBook.add(anotherOrder)
 	orderBook.run()
 
-	fmt.Println(orderBook.buyHash)
-	fmt.Println(orderBook.sellHash)
+	// fmt.Println(orderBook.buyHash)
+	// fmt.Println(orderBook.sellHash)
 }
