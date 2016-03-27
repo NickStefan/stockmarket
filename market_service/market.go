@@ -103,6 +103,7 @@ func (o *OrderBook) run() {
 type Trade struct {
 	Actor string `json:"actor"`
 	Shares int `json:"shares"`
+	Ticker string `json:"ticker"`
 	Price float64 `json:"price"`
 	Intent string `json:"intent"`
 	Kind string `json:"kind"`
@@ -115,7 +116,7 @@ func main() {
 
 	orderBook.setTradeHandler(func (t Trade) {
 		fmt.Println("hello handler")
-		url := "http://localhost:8000"
+		url := "http://localhost:8000/fill"
 		trade, err := json.Marshal(t)
 		resp, err := http.Post(url, "application/json", bytes.NewBuffer(trade))
 		if err != nil {
@@ -128,7 +129,9 @@ func main() {
 		ask: 10.05, 
 		BaseOrder: &BaseOrder{
 			actor: "Tim", timecreated: time.Now().Unix(),
-			intent: "SELL", shares: 100, state: "OPEN",
+			intent: "SELL", shares: 100, state: "OPEN", ticker: "STOCK",
+			kind: "LIMIT",
+
 		},
 	}
 
@@ -136,7 +139,8 @@ func main() {
 		bid: 10.10, 
 		BaseOrder: &BaseOrder{
 			actor: "Bob", timecreated: time.Now().Unix(),
-			intent: "BUY", shares: 100, state: "OPEN",
+			intent: "BUY", shares: 100, state: "OPEN", ticker: "STOCK",
+			kind: "LIMIT",
 		},
 	}
 	orderBook.add(anOrder)
