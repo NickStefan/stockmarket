@@ -8,7 +8,7 @@ import (
 
 type Trade struct {
 	Actor string `json:"actor"`
-	Shares int `json:"shares"`
+	Shares int 	`json:"shares"`
 	Ticker string `json:"ticker"`
 	Price float64 `json:"price"`
 	Intent string `json:"intent"`
@@ -19,12 +19,20 @@ type Trade struct {
 type Account struct {
 	name string
 	cash float64
-	assets map[string]Asset
+	assets map[string]*Asset
 }
 
 type Asset struct {
 	ticker string
 	shares int
+}
+
+func processTrade(data map[string]*Account, t Trade){
+	if data[t.Actor] == nil {
+		data[t.Actor] = &Account{
+			name: t.Actor, cash: 10000,
+		}
+	}
 }
 
 
@@ -41,6 +49,8 @@ func main() {
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))
+
+		processTrade(dataStore, t)
 		fmt.Println(t)
 	})
 
