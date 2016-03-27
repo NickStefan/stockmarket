@@ -30,7 +30,7 @@ type Asset struct {
 
 func main() {
 
-	// dataStore := make(map[string]*Account)
+	dataStore := make(map[string]*Account)
 
 	http.HandleFunc("/fill", func(w http.ResponseWriter, r *http.Request){
 		var t Trade
