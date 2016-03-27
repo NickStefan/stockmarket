@@ -18,7 +18,7 @@ type Trade struct {
 
 type Account struct {
 	name string
-	balance float64
+	cash float64
 	assets map[string]Asset
 }
 
