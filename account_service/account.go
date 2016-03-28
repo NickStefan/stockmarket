@@ -16,22 +16,48 @@ type Trade struct {
 	State  string `json:"state"`
 }
 
+type Asset struct {
+	ticker string
+	shares int
+}
+
 type Account struct {
 	name string
 	cash float64
 	assets map[string]*Asset
 }
 
-type Asset struct {
-	ticker string
-	shares int
+func (a *Account) buy(t Trade) {
+	if a.assets[t.Ticker] == nil {
+		a.assets[t.Ticker] = &Asset{}
+	}
+	a.cash = a.cash - (float64(t.Shares) * t.Price)
+	asset := a.assets[t.Ticker]
+	asset.ticker = t.Ticker
+	asset.shares = asset.shares + t.Shares
 }
+
+func (a *Account) sell(t Trade) {
+	if a.assets[t.Ticker] == nil {
+		a.assets[t.Ticker] = &Asset{}
+	}
+	a.cash = a.cash + (float64(t.Shares) * t.Price)
+	asset := a.assets[t.Ticker]
+	asset.ticker = t.Ticker
+	asset.shares = asset.shares - t.Shares
+}
+
 
 func processTrade(data map[string]*Account, t Trade){
 	if data[t.Actor] == nil {
-		data[t.Actor] = &Account{
-			name: t.Actor, cash: 10000,
-		}
+		data[t.Actor] = &Account{ name: t.Actor, cash: 0, assets: make(map[string]*Asset)}
+	}
+
+	if t.Intent == "BUY" {
+		data[t.Actor].buy(t) 
+
+	} else if t.Intent == "SELL" {
+		data[t.Actor].sell(t)
 	}
 }
 

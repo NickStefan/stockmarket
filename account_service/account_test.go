@@ -50,8 +50,8 @@ func Test(t *testing.T){
 			processTrade(dataStore, tradeBob)
 			processTrade(dataStore, tradeTim)
 
-			g.Assert(dataStore["Tim"].assets["STOCK"].shares).Equal(0)
-			g.Assert(dataStore["Bob"].assets["STOCK"].shares).Equal(100)
+			g.Assert(dataStore["Tim"].assets["STOCK"].shares).Equal(100)
+			g.Assert(dataStore["Bob"].assets["STOCK"].shares).Equal(0)
 		})
 
 		g.It("should update the cash balance", func(){
@@ -77,8 +77,8 @@ func Test(t *testing.T){
 			processTrade(dataStore, tradeTim)
 
 			g.Assert(dataStore["Tim"].cash).Equal(0.00)
-			g.Assert(dataStore["Bob"].cash).Equal(10000.00)
+			g.Assert(dataStore["Bob"].cash).Equal(700.00)
 		})
-		
+
 	})
 }
