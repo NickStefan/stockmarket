@@ -158,12 +158,9 @@ func Test(t *testing.T){
 				
 				orderBook := NewOrderBook()
 
-				orderBook.setTradeHandler(func (t Trade) {
-					if t.Intent == "BUY"{
-						g.Assert(t.Price).Equal(10.05)
-					} else {
-						g.Assert(t.Price).Equal(0.00)
-					}
+				orderBook.setTradeHandler(func (t Trade, o Trade) {
+					g.Assert(t.Price).Equal(10.05)
+					g.Assert(o.Price).Equal(10.05)
 				})
 
 				orderBook.add(orders[0])
@@ -174,12 +171,9 @@ func Test(t *testing.T){
 			g.It("should partially fill orders when the share numbers dont match", func(){
 				orderBook := NewOrderBook()
 
-				orderBook.setTradeHandler(func (t Trade) {
-					if t.Intent == "BUY"{
-						g.Assert(t.Price).Equal(10.05)
-					} else {
-						g.Assert(t.Price).Equal(0.00)
-					}
+				orderBook.setTradeHandler(func (t Trade, o Trade) {
+					g.Assert(t.Price).Equal(10.05)
+					g.Assert(o.Price).Equal(10.05)
 				})
 				
 				// set one order to be smaller than the other

@@ -19,11 +19,11 @@ type OrderBook struct {
 	sellHash map[string]*Order
 }
 
-type tradehandler func(Trade)
+type tradehandler func(Trade, Trade)
 
 func NewOrderBook() *OrderBook {
 	return &OrderBook{
-		handleTrade: func(t Trade) { },
+		handleTrade: func(t Trade, o Trade) { },
 		buyHash: make(map[string]*Order),
 		sellHash: make(map[string]*Order),
 		buyQueue: heap.Heap{Priority: "max"},
@@ -67,8 +67,7 @@ func (o *OrderBook) run() {
 			o.sellQueue.Dequeue()
 
 			price := buy.price()
-			o.handleTrade(buy.fill(price))
-			o.handleTrade(sell.fill(sell.price()))
+			o.handleTrade(buy.fill(price), sell.fill(price))
 			
 			delete(o.buyHash, buyTop.Lookup)
 			delete(o.sellHash, sellTop.Lookup)
@@ -78,8 +77,7 @@ func (o *OrderBook) run() {
 			remainderSell := sell.getOrder().shares - buy.getOrder().shares
 			
 			price := buy.price()
-			o.handleTrade(buy.fill(price))
-			o.handleTrade(sell.partialFill(sell.price(), remainderSell))
+			o.handleTrade(buy.fill(price), sell.partialFill(price, remainderSell))
  
 			delete(o.buyHash, buyTop.Lookup)
 		
@@ -88,8 +86,7 @@ func (o *OrderBook) run() {
 			remainderBuy := buy.getOrder().shares - sell.getOrder().shares
 			
 			price := buy.price()
-			o.handleTrade(sell.fill(sell.price()))
-			o.handleTrade(buy.partialFill(price, remainderBuy))
+			o.handleTrade(sell.fill(price), sell.partialFill(price, remainderBuy))
 
 			delete(o.sellHash, sellTop.Lookup)
 		}
@@ -114,10 +111,10 @@ func main() {
 
 	orderBook := NewOrderBook()
 
-	orderBook.setTradeHandler(func (t Trade) {
+	orderBook.setTradeHandler(func (t Trade, o Trade) {
 		fmt.Println("hello handler")
 		url := "http://localhost:8000/fill"
-		trade, err := json.Marshal(t)
+		trade, err := json.Marshal([2]Trade{t,o})
 		resp, err := http.Post(url, "application/json", bytes.NewBuffer(trade))
 		if err != nil {
 			panic(err)
