@@ -8,20 +8,20 @@ import (
 func Test(t *testing.T){
 	g := Goblin(t)
 
-	g.Describe("Account", func(){
+	g.Describe("Ledger", func(){
 
-		var dataStore map[string]*Account
+		var dataStore map[string]*Ledger
 		
 		g.BeforeEach(func(){
-			dataStore = map[string]*Account{
-				"Bob": &Account{
+			dataStore = map[string]*Ledger{
+				"Bob": &Ledger{
 					name: "Bob",
 					cash: 0,
 					assets: map[string]*Asset{
 						"STOCK": &Asset{ ticker: "STOCK", shares: 100, },
 					},
 				},
-				"Tim": &Account{
+				"Tim": &Ledger{
 					name: "Tim",
 					cash: 10000,
 					assets: make(map[string]*Asset),
@@ -47,8 +47,7 @@ func Test(t *testing.T){
 				Kind: "MARKET",
 			}
 
-			processTrade(dataStore, tradeBob)
-			processTrade(dataStore, tradeTim)
+			processTrade(dataStore, tradeBob, tradeTim)
 
 			g.Assert(dataStore["Tim"].assets["STOCK"].shares).Equal(100)
 			g.Assert(dataStore["Bob"].assets["STOCK"].shares).Equal(0)
@@ -73,8 +72,7 @@ func Test(t *testing.T){
 				Kind: "MARKET",
 			}
 
-			processTrade(dataStore, tradeBob)
-			processTrade(dataStore, tradeTim)
+			processTrade(dataStore, tradeBob, tradeTim)
 
 			g.Assert(dataStore["Tim"].cash).Equal(0.00)
 			g.Assert(dataStore["Bob"].cash).Equal(700.00)

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"time"
-	"github.com/nickstefan/market/market_service/heap"
+	"github.com/nickstefan/market/orderbook_service/heap"
 	"bytes"
 	"encoding/json"
 	"net/http"

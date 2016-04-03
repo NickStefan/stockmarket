@@ -190,22 +190,3 @@ func Test(t *testing.T){
 
 	})
 }
-
-// BENCHMARKS
-var benchOrders = createDummyOrders(0)
-
-var result float64
-
-func BenchmarkOrderBookRun(b *testing.B){
-
-	orderBook := NewOrderBook()
-
-	for i :=0; i < 6; i++ {
-		orderBook.add(benchOrders[i])
-	}
-
-	// filling orders will dequeue filled orders,
-	// so expect further down the line orders when dequeueing
-	orderBook.run()
-	result = orderBook.buyQueue.Dequeue().Value
-}

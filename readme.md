@@ -3,8 +3,8 @@
 _now in golang!_
 
 ### TODO
-- [x] account service (ledger)  
-- [x] market service (order book)  
+- [x] ledger service  
+- [x] orderbook service  
 - [ ] kafka (message queue between services)  
 - [ ] ticker service (chart and quote stream)  
 - [ ] web service (front end data)  
