@@ -51,6 +51,9 @@ func processTrade(data map[string]*Ledger, t Trade, o Trade) {
 	if data[t.Actor] == nil {
 		data[t.Actor] = &Ledger{name: t.Actor, cash: 0, assets: make(map[string]*Asset)}
 	}
+	if data[o.Actor] == nil {
+		data[o.Actor] = &Ledger{name: o.Actor, cash: 0, assets: make(map[string]*Asset)}
+	}
 
 	if t.Intent == "BUY" {
 		data[t.Actor].buy(t)
@@ -82,8 +85,8 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))
 
-		processTrade(dataStore, payload[0], payload[1])
 		fmt.Println(payload)
+		processTrade(dataStore, payload[0], payload[1])
 	})
 
 	http.HandleFunc("/report", func(w http.ResponseWriter, r *http.Request) {

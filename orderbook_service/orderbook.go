@@ -12,6 +12,7 @@ import (
 // how does a stock market organize the orders? Depth of Market or OrderBook
 
 type OrderBook struct {
+	lastPrice float64
 	handleTrade tradehandler
 	buyQueue heap.Heap
 	sellQueue heap.Heap
@@ -53,6 +54,24 @@ func (o *OrderBook) add(order Order) {
 	}
 }
 
+func (o *OrderBook) negotiatePrice(b Order, s Order) float64 {
+	bKind := b.getOrder().kind
+	sKind := s.getOrder().kind
+
+	if bKind == "MARKET" && sKind == "LIMIT" {
+		o.lastPrice = s.price()
+
+	} else if sKind == "MARKET" && bKind == "LIMIT" {
+		o.lastPrice = b.price()
+
+	} else if bKind == "LIMIT" && sKind == "LIMIT"{
+		o.lastPrice = s.price() 
+	
+	} // else if both market, use last price
+
+	return o.lastPrice
+}
+
 func (o *OrderBook) run() {
 	buyTop := o.buyQueue.Peek()
 	sellTop := o.sellQueue.Peek()
@@ -61,12 +80,12 @@ func (o *OrderBook) run() {
 		
 		buy := *(o.buyHash[ buyTop.Lookup ])
 		sell := *(o.sellHash[ sellTop.Lookup ])
+		price := o.negotiatePrice(buy, sell)
 
 		if buy.getOrder().shares == sell.getOrder().shares {
 			o.buyQueue.Dequeue()
 			o.sellQueue.Dequeue()
 
-			price := buy.price()
 			o.handleTrade(buy.fill(price), sell.fill(price))
 			
 			delete(o.buyHash, buyTop.Lookup)
@@ -76,7 +95,6 @@ func (o *OrderBook) run() {
 			o.buyQueue.Dequeue()
 			remainderSell := sell.getOrder().shares - buy.getOrder().shares
 			
-			price := buy.price()
 			o.handleTrade(buy.fill(price), sell.partialFill(price, remainderSell))
  
 			delete(o.buyHash, buyTop.Lookup)
@@ -85,7 +103,6 @@ func (o *OrderBook) run() {
 			o.sellQueue.Dequeue()
 			remainderBuy := buy.getOrder().shares - sell.getOrder().shares
 			
-			price := buy.price()
 			o.handleTrade(sell.fill(price), sell.partialFill(price, remainderBuy))
 
 			delete(o.sellHash, sellTop.Lookup)

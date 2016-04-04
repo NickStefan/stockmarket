@@ -13,46 +13,46 @@ func createDummyOrders(n int64) [7]Order {
 					bid: 10.05, 
 					BaseOrder: &BaseOrder{
 						actor: "Bob", timecreated: time.Now().Unix() + n, 
-						intent: "BUY", shares: 100, state: "OPEN",
+						intent: "BUY", kind: "LIMIT", shares: 100, state: "OPEN",
 					},
 				},
 				BuyMarket{
 					BaseOrder: &BaseOrder{
 						actor: "Tim", timecreated: time.Now().Unix() + n,
-						intent: "BUY", shares: 100, state: "OPEN",
+						intent: "BUY", kind: "MARKET", shares: 100, state: "OPEN",
 					},
 				},
 				BuyLimit{
 					bid: 10.00, 
 					BaseOrder: &BaseOrder{
 						actor: "Gary", timecreated: time.Now().Unix() + n,
-						intent: "BUY", shares: 100, state: "OPEN",
+						intent: "BUY", kind: "LIMIT", shares: 100, state: "OPEN",
 					},
 				},
 				SellMarket{
 					BaseOrder: &BaseOrder{
 						actor: "Terry", timecreated: time.Now().Unix() + n,
-						intent: "SELL", shares: 100, state: "OPEN",
+						intent: "SELL", kind: "MARKET", shares: 100, state: "OPEN",
 					},
 				},
 				SellLimit{
 					ask: 10.10, 
 					BaseOrder: &BaseOrder{
 						actor: "Larry", timecreated: time.Now().Unix() + n,
-						intent: "SELL", shares: 100, state: "OPEN",
+						intent: "SELL", kind: "LIMIT", shares: 100, state: "OPEN",
 					},
 				},
 				SellMarket{
 					BaseOrder: &BaseOrder{
 						actor: "Sam", timecreated: time.Now().Unix() + n,
-						intent: "SELL", shares: 100, state: "OPEN",
+						intent: "SELL", kind: "MARKET", shares: 100, state: "OPEN",
 					},
 				},
 				BuyLimit{
 					bid: 10.05, 
 					BaseOrder: &BaseOrder{
 						actor: "Sally", timecreated: time.Now().Unix() + n, 
-						intent: "BUY", shares: 80, state: "OPEN",
+						intent: "BUY", kind: "LIMIT", shares: 80, state: "OPEN",
 					},
 				},
 			}
