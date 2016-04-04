@@ -129,14 +129,24 @@ func main() {
 	orderBook := NewOrderBook()
 
 	orderBook.setTradeHandler(func (t Trade, o Trade) {
-		fmt.Println("hello handler")
-		url := "http://localhost:8000/fill"
 		trade, err := json.Marshal([2]Trade{t,o})
-		resp, err := http.Post(url, "application/json", bytes.NewBuffer(trade))
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println("response Status:", resp.Status)
+
+		ledgerUrl := "http://localhost:8000/fill"
+		ledgerResp, err := http.Post(ledgerUrl, "application/json", bytes.NewBuffer(trade))
+		if err != nil {
+			panic(err)
+		}
+
+		tickerUrl := "http://localhost:8001/"
+		tickerResp, err := http.Post(tickerUrl, "application/json", bytes.NewBuffer(trade))
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println("response Status:", ledgerResp.Status, tickerResp.Status)
 	})
 
 	anOrder := SellLimit{
