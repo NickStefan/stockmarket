@@ -6,7 +6,7 @@ _now in golang!_
 - [x] ledger service  
 - [x] orderbook service  
   - [x] message to ledger service  
-  - [ ] message to ticker service  
+  - [x] message to ticker service  
   - [ ] listen for http (for submitting of orders)
 
 - [ ] kafka (message queue between services)  

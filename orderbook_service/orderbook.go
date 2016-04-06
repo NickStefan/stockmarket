@@ -122,6 +122,7 @@ type Trade struct {
 	Intent string `json:"intent"`
 	Kind string `json:"kind"`
 	State  string `json:"state"`
+	Time float64 `json:"time"`
 }
 
 func main() {
