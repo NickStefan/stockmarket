@@ -1,7 +1,9 @@
-cd ticker_service && go install && cd ..
-cd ledger_service && go install && cd ..
-cd orderbook_service && go install && cd ..
+services=`cat services`
 
-$GOPATH/bin/ticker_service &
-$GOPATH/bin/ledger_service &
-$GOPATH/bin/orderbook_service
+for service in $services; do
+  cd $service && go install && cd ..
+done
+
+for service in $services; do
+  $GOPATH/bin/$service &
+done
