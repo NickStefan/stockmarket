@@ -36,7 +36,7 @@ func (b *BaseOrder) partialFill(price float64, newShares int) Trade {
 	return Trade{
 		Actor: b.actor, Shares: b.shares - newShares,
 		Price: price, Intent: b.intent, Kind: b.kind, Ticker: b.ticker,
-		Time: time.Now().Unix()
+		Time: time.Now().Unix(),
 	}
 }
 
@@ -44,7 +44,7 @@ func (b *BaseOrder) fill(price float64) Trade {
 	return Trade{
 		Actor: b.actor, Shares: b.shares, Price: price,
 		Intent: b.intent, Ticker: b.ticker, Kind: b.kind,
-		Time: Time.Now().Unix()
+		Time: time.Now().Unix(),
 	}
 }
 

@@ -84,18 +84,16 @@ func main() {
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))
-
-		fmt.Println(payload)
 		processTrade(dataStore, payload[0], payload[1])
 	})
 
 	http.HandleFunc("/report", func(w http.ResponseWriter, r *http.Request) {
 		for name, ledger := range dataStore {
-			fmt.Println(name, ledger)
+			fmt.Println("LEDGER_SERVICE: ", name, ledger)
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))
 	})
 
-	http.ListenAndServe(":8000", nil)
+	http.ListenAndServe(":8002", nil)
 }

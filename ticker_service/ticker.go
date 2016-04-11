@@ -3,6 +3,8 @@ package main
 import (
     "encoding/json"
     "net/http"
+    "fmt"
+    "time"
 )
 
 type Trade struct {
@@ -16,11 +18,97 @@ type Trade struct {
     Time float64 `json:"time"`
 }
 
+func schedule(f func(), delaySeconds time.Duration) chan struct{} {
+    ticker := time.NewTicker(delaySeconds * time.Second)
+    
+    quit := make(chan struct{})
+    
+    go func() {
+        for {
+            select {
+                case <- ticker.C:
+                    f()
+
+                case <- quit:
+                    ticker.Stop()
+                    return
+            }
+        }
+    }()
+
+    return quit
+}
+
+type Minute struct {
+    high float64
+    low float64
+    open float64
+    close float64
+    volume int
+    ticker string
+}
+
+type MinuteHash struct {
+    hash map[string]*Minute
+}
+
+func NewMinuteHash(tickers []string) *MinuteHash {
+    hash := make(map[string]*Minute)
+
+    for _, ticker := range tickers {
+        hash[ticker] = &Minute{ticker: ticker}
+    }
+
+    return &MinuteHash{
+        hash: hash,
+    }
+}
+
+func (m *MinuteHash) add(t Trade) {
+    minute := m.hash[t.Ticker]
+    
+    if minute.volume == 0 {
+        minute.open = t.Price
+    }
+
+    if minute.low > t.Price {
+        minute.low = t.Price 
+    }
+
+    if minute.high < t.Price {
+        minute.high = t.Price
+    }
+
+    minute.volume = minute.volume + t.Shares
+    minute.close = t.Price
+}
+
+func (m *MinuteHash) persistAndPublish(){
+    minutes := make([]*Minute, 0)
+
+    for ticker, tickMinute := range m.hash {
+        minutes = append(minutes, tickMinute)
+        m.publish(tickMinute)
+        // reset hash
+        m.hash[ticker] = &Minute{ticker: ticker}
+    }
+
+    m.persist(minutes)
+}
+
+func (m *MinuteHash) publish(tickMinute *Minute){
+
+}
+
+func (m *MinuteHash) persist(l []*Minute){
+    fmt.Println("TICKER_SERVICE: ", l)
+}
+
 func main() {
+    tickers := []string{"STOCK"}
+    minuteHash := NewMinuteHash(tickers)
 
-    hash := make(map[string][]Trade)
-
-    // only store minutes (we dont need 1 sec or 10 sec charts)
+    schedule(minuteHash.persistAndPublish, 60)
 
     // {
     //       timestamp_hour: ISODate("2013-10-10T23:00:00.000Z"),
@@ -55,15 +143,6 @@ func main() {
     //      - publish to ticker channel, rate limit to one / second
     //      - add to cache of last 60 seconds of trades 
 
-    // every 60 seconds,
-    //      for each stock
-    //          - calculate high, open, low, close, vol for last 60 seconds (cache last state to solve missing values?)
-    //          - update DB
-    //          - publish latest minute info
-    //          - clear cache
-
-    // http://stackoverflow.com/questions/16466320/is-there-a-way-to-do-repetitive-tasks-at-intervals-in-golang
-    
     http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request){
         var payload [2]Trade
         decoder := json.NewDecoder(r.Body)
@@ -72,10 +151,11 @@ func main() {
             panic(err)
         }
 
-        ticker := payload[0].Ticker
-        hash[ticker] = append(hash[ticker], payload[0])
+        minuteHash.add(payload[0])
 
         w.WriteHeader(http.StatusOK)
         w.Write([]byte("Status 200"))
-    })   
+    })
+
+    http.ListenAndServe(":8003", nil)
 }

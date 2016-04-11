@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 	"github.com/nickstefan/market/orderbook_service/heap"
 	"bytes"
@@ -122,7 +121,7 @@ type Trade struct {
 	Intent string `json:"intent"`
 	Kind string `json:"kind"`
 	State  string `json:"state"`
-	Time float64 `json:"time"`
+	Time int64 `json:"time"`
 }
 
 func main() {
@@ -135,19 +134,17 @@ func main() {
 			panic(err)
 		}
 
-		ledgerUrl := "http://localhost:8000/fill"
-		ledgerResp, err := http.Post(ledgerUrl, "application/json", bytes.NewBuffer(trade))
+		ledgerUrl := "http://localhost:8002/fill"
+		_, err = http.Post(ledgerUrl, "application/json", bytes.NewBuffer(trade))
 		if err != nil {
 			panic(err)
 		}
 
-		tickerUrl := "http://localhost:8001/"
-		tickerResp, err := http.Post(tickerUrl, "application/json", bytes.NewBuffer(trade))
+		tickerUrl := "http://localhost:8003/"
+		_, err = http.Post(tickerUrl, "application/json", bytes.NewBuffer(trade))
 		if err != nil {
 			panic(err)
 		}
-
-		fmt.Println("response Status:", ledgerResp.Status, tickerResp.Status)
 	})
 
 	anOrder := SellLimit{
@@ -156,7 +153,6 @@ func main() {
 			actor: "Tim", timecreated: time.Now().Unix(),
 			intent: "SELL", shares: 100, state: "OPEN", ticker: "STOCK",
 			kind: "LIMIT",
-
 		},
 	}
 
