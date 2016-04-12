@@ -166,5 +166,11 @@ func main() {
 	}
 	orderBook.add(anOrder)
 	orderBook.add(anotherOrder)
-	orderBook.run()
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		orderBook.run()
+		w.WriteHeader(http.StatusOK)
+        w.Write([]byte("Status 200"))
+	})
+	http.ListenAndServe(":8001", nil)
 }

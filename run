@@ -8,14 +8,27 @@ if [[ $1 == "local" ]]; then
     cd $service && go install && cd ..
   done
 
+  mongod &
+
   for service in $services; do
     $GOPATH/bin/$service &
   done
 fi
 
 
+# INSTALL
+if [[ $1 == "install" ]]; then
+  for service in $services; do
+    cd $service && go install && cd ..
+  done
+fi
+
+
 # LIST
 if [[ $1 == "list" ]]; then
+
+  ps aux | grep mongod | grep -v grep
+
   for service in $services; do
     ps aux | grep $service | grep -v grep
   done
@@ -32,6 +45,9 @@ fi
 
 # KILL
 if [[ $1 == "kill" ]]; then
+
+  pkill -x mongod
+
   for service in $services; do
     pkill -x $service
   done

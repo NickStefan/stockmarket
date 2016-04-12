@@ -1,9 +1,11 @@
 package main 
 
 import (
+    "gopkg.in/mgo.v2"
     "encoding/json"
     "net/http"
     "time"
+    "fmt"
 )
 
 type Trade struct {
@@ -39,8 +41,16 @@ func schedule(f func(), delaySeconds time.Duration) chan struct{} {
 }
 
 func main() {
+    url := "mongodb://localhost"
+    session, err := mgo.Dial(url)
+    err = session.DB("tickerdb").DropDatabase()
+    if err != nil {
+        panic(err)
+    }
+    defer session.Close()
+    
     tickers := []string{"STOCK"}
-    minuteHash := NewMinuteHash(tickers)
+    minuteHash := NewMinuteHash(tickers, session.DB("tickerdb"))
 
     schedule(minuteHash.persistAndPublish, 60)
 
@@ -84,7 +94,6 @@ func main() {
         if err != nil {
             panic(err)
         }
-
         minuteHash.add(payload[0])
 
         w.WriteHeader(http.StatusOK)

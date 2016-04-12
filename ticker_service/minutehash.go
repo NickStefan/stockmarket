@@ -1,73 +1,81 @@
 package main
 
 import (
-  "fmt"
+    // "fmt"
+    "gopkg.in/mgo.v2"
 )
 
 type Minute struct {
-    high float64
-    low float64
-    open float64
-    close float64
-    volume int
-    ticker string
+    High float64 `json:"high"`
+    Low float64 `json:"low"`
+    Open float64 `json:"open"`
+    Close float64 `json:"close"`
+    Volume int `json:"volume"`
+    Ticker string `json:"ticker"`
 }
 
 type MinuteHash struct {
     hash map[string]*Minute
+    db *mgo.Database
 }
 
-func NewMinuteHash(tickers []string) *MinuteHash {
+func NewMinuteHash(tickers []string, db *mgo.Database) *MinuteHash {
     hash := make(map[string]*Minute)
 
     for _, ticker := range tickers {
-        hash[ticker] = &Minute{ticker: ticker}
+        hash[ticker] = &Minute{Ticker: ticker}
     }
 
     return &MinuteHash{
         hash: hash,
+        db: db,
     }
 }
 
 func (m *MinuteHash) add(t Trade) {
     minute := m.hash[t.Ticker]
     
-    if minute.volume == 0 {
-        minute.open = t.Price
-        minute.high = t.Price
-        minute.low = t.Price
-        minute.close = t.Price
+    if minute.Volume == 0 {
+        minute.Open = t.Price
+        minute.High = t.Price
+        minute.Low = t.Price
+        minute.Close = t.Price
     }
 
-    if minute.low > t.Price {
-        minute.low = t.Price 
+    if minute.Low > t.Price {
+        minute.Low = t.Price 
     }
 
-    if minute.high < t.Price {
-        minute.high = t.Price
+    if minute.High < t.Price {
+        minute.High = t.Price
     }
 
-    minute.volume = minute.volume + t.Shares
-    minute.close = t.Price
+    minute.Volume = minute.Volume + t.Shares
+    minute.Close = t.Price
 }
 
 func (m *MinuteHash) persistAndPublish(){
-    minutes := make([]*Minute, 0)
+    minutes := make([]interface{}, 0)
 
     for ticker, tickMinute := range m.hash {
         minutes = append(minutes, tickMinute)
         m.publish(tickMinute)
         // reset hash
-        m.hash[ticker] = &Minute{ticker: ticker}
+        m.hash[ticker] = &Minute{Ticker: ticker}
     }
 
     m.persist(minutes)
 }
 
 func (m *MinuteHash) publish(tickMinute *Minute){
-
+    // fmt.Println("TICKER_SERVICE: ", tickMinute)
 }
 
-func (m *MinuteHash) persist(l []*Minute){
-    fmt.Println("TICKER_SERVICE: ", l)
+func (m *MinuteHash) persist(l []interface{}){
+    // put it all into mongodb
+    c := m.db.C("ticks")
+    err := c.Insert(l...)
+    if err != nil {
+        panic(err)
+    }
 }

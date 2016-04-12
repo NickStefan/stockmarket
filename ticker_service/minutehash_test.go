@@ -35,9 +35,9 @@ func TestMinuteHash(t *testing.T) {
             })
 
             g.Assert(minuteHash.hash["STOCK"]).Equal(&Minute{
-                high: 11.5, low: 9.5, 
-                open: 10.5, close: 10.55, 
-                volume: 270, ticker: "STOCK",
+                High: 11.5, Low: 9.5, 
+                Open: 10.5, Close: 10.55, 
+                Volume: 270, Ticker: "STOCK",
             })
 		})
 	})
