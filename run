@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+services=`cat services`
+
+# LOCAL
+if [[ $1 == "local" ]]; then
+  for service in $services; do
+    cd $service && go install && cd ..
+  done
+
+  for service in $services; do
+    $GOPATH/bin/$service &
+  done
+fi
+
+
+# LIST
+if [[ $1 == "list" ]]; then
+  for service in $services; do
+    ps aux | grep $service | grep -v grep
+  done
+fi
+
+
+# TEST
+if [[ $1 == "test" ]]; then
+  for service in $services; do
+    cd $service && go test && cd ..
+  done
+fi
+
+
+# KILL
+if [[ $1 == "kill" ]]; then
+  for service in $services; do
+    pkill -x $service
+  done
+fi
+
