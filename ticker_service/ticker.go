@@ -5,7 +5,6 @@ import (
     "encoding/json"
     "net/http"
     "time"
-    "fmt"
 )
 
 type Trade struct {
@@ -50,7 +49,8 @@ func main() {
     defer session.Close()
     
     tickers := []string{"STOCK"}
-    minuteHash := NewMinuteHash(tickers, session.DB("tickerdb"))
+    minuteHash := NewMinuteHash(tickers)
+    minuteHash.setDB(session.DB("tickerdb"))
 
     schedule(minuteHash.persistAndPublish, 60)
 

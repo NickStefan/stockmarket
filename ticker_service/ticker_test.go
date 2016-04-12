@@ -9,9 +9,6 @@ func Test(t *testing.T) {
   g := Goblin(t)
 
   g.Describe("Ticker", func(){
-    g.It("should cache a list of trades on http", func(){
-
-    })
 
     g.It("QUOTE channel, should receive realtime trades", func(){
 

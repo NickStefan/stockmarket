@@ -126,6 +126,9 @@ type Trade struct {
 
 func main() {
 
+	ledgerUrl := "http://localhost:8002/fill"
+	tickerUrl := "http://localhost:8003/"
+	
 	orderBook := NewOrderBook()
 
 	orderBook.setTradeHandler(func (t Trade, o Trade) {
@@ -134,13 +137,11 @@ func main() {
 			panic(err)
 		}
 
-		ledgerUrl := "http://localhost:8002/fill"
 		_, err = http.Post(ledgerUrl, "application/json", bytes.NewBuffer(trade))
 		if err != nil {
 			panic(err)
 		}
 
-		tickerUrl := "http://localhost:8003/"
 		_, err = http.Post(tickerUrl, "application/json", bytes.NewBuffer(trade))
 		if err != nil {
 			panic(err)

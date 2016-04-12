@@ -19,7 +19,7 @@ type MinuteHash struct {
     db *mgo.Database
 }
 
-func NewMinuteHash(tickers []string, db *mgo.Database) *MinuteHash {
+func NewMinuteHash(tickers []string) *MinuteHash {
     hash := make(map[string]*Minute)
 
     for _, ticker := range tickers {
@@ -28,8 +28,11 @@ func NewMinuteHash(tickers []string, db *mgo.Database) *MinuteHash {
 
     return &MinuteHash{
         hash: hash,
-        db: db,
     }
+}
+
+func (m *MinuteHash) setDB(db *mgo.Database) {
+    m.db = db
 }
 
 func (m *MinuteHash) add(t Trade) {

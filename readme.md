@@ -16,23 +16,24 @@ _now in golang!_
 
 
 - [ ] ticker service (chart and quote stream)  
-  - [ ] on price data, publish quote to "QUOTE" channel; rate limit 1 / second  
-  - [ ] on price data, add to cache of last 60 seconds of trades  
-  - [ ] every 60 seconds, calc minute data, persist to DB, publish to "CHART" channel  
+  - [x] on price data http, update minute high, low, open, close, vol information  
+  - [x] every 60 seconds, persist tick data to DB  
+  - [ ] on price data, publish price to "QUOTE" channel; rate limit 1 / second  
+  - [ ] every 60 seconds, publish tick data to "CHART" channel  
 
-- [ ] web service (front end data)  
+- [ ] web service  
   - [ ] serve front end javascript  
-  - [ ] handle accounts and oath  
+  - [ ] handle accounts and authentication  
 
-- [ ] web client (front end ui)  
-  - [ ] enable listening to "QUOTE" and "CHART" channels  
+- [ ] web client (front end)  
   - [ ] graph "CHART" data into a stock chart  
+  - [ ] listen to "QUOTE" and "CHART" channels  
   - [ ] display account info  
   - [ ] place orders  
 
 - [ ] bot service (automate trades)  
-  - [ ] write trading bots   
-  - [ ] make a front end UI for creating bots
+  - [ ] trading bots   
+  - [ ] front end UI for creating bots  
 
 - [ ] kafka (message queue between services)  
 
