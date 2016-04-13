@@ -8,7 +8,7 @@ _now in golang!_
   - [x] track quantity and asset for each user (cash is an asset)  
 
 - [x] orderbook service  
-  - [ ] listen for http (for submitting of orders)  
+  - [x] listen for http (for submitting of orders)  
   - [x] priotiy queues for buy and sell orders
   - [x] dequeue priority queues into trades
   - [x] message to ledger service  
