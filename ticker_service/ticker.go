@@ -5,6 +5,7 @@ import (
     "encoding/json"
     "net/http"
     "time"
+    "fmt"
 )
 
 type Trade struct {
@@ -92,6 +93,7 @@ func main() {
         decoder := json.NewDecoder(r.Body)
         err := decoder.Decode(&payload)
         if err != nil {
+            fmt.Println("ERR: TICKER_SERVICE")
             panic(err)
         }
         minuteHash.add(payload[0])

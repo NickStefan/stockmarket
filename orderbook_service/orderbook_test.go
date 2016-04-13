@@ -10,49 +10,49 @@ import (
 func createDummyOrders(n int64) [7]Order {
 	return [7]Order{
 				BuyLimit{
-					bid: 10.05, 
+					Bid: 10.05, 
 					BaseOrder: &BaseOrder{
-						actor: "Bob", timecreated: time.Now().Unix() + n, 
-						intent: "BUY", kind: "LIMIT", shares: 100, state: "OPEN",
+						Actor: "Bob", Timecreated: time.Now().Unix() + n, 
+						Intent: "BUY", Kind: "LIMIT", Shares: 100, State: "OPEN",
 					},
 				},
 				BuyMarket{
 					BaseOrder: &BaseOrder{
-						actor: "Tim", timecreated: time.Now().Unix() + n,
-						intent: "BUY", kind: "MARKET", shares: 100, state: "OPEN",
+						Actor: "Tim", Timecreated: time.Now().Unix() + n,
+						Intent: "BUY", Kind: "MARKET", Shares: 100, State: "OPEN",
 					},
 				},
 				BuyLimit{
-					bid: 10.00, 
+					Bid: 10.00, 
 					BaseOrder: &BaseOrder{
-						actor: "Gary", timecreated: time.Now().Unix() + n,
-						intent: "BUY", kind: "LIMIT", shares: 100, state: "OPEN",
+						Actor: "Gary", Timecreated: time.Now().Unix() + n,
+						Intent: "BUY", Kind: "LIMIT", Shares: 100, State: "OPEN",
 					},
 				},
 				SellMarket{
 					BaseOrder: &BaseOrder{
-						actor: "Terry", timecreated: time.Now().Unix() + n,
-						intent: "SELL", kind: "MARKET", shares: 100, state: "OPEN",
+						Actor: "Terry", Timecreated: time.Now().Unix() + n,
+						Intent: "SELL", Kind: "MARKET", Shares: 100, State: "OPEN",
 					},
 				},
 				SellLimit{
-					ask: 10.10, 
+					Ask: 10.10, 
 					BaseOrder: &BaseOrder{
-						actor: "Larry", timecreated: time.Now().Unix() + n,
-						intent: "SELL", kind: "LIMIT", shares: 100, state: "OPEN",
+						Actor: "Larry", Timecreated: time.Now().Unix() + n,
+						Intent: "SELL", Kind: "LIMIT", Shares: 100, State: "OPEN",
 					},
 				},
 				SellMarket{
 					BaseOrder: &BaseOrder{
-						actor: "Sam", timecreated: time.Now().Unix() + n,
-						intent: "SELL", kind: "MARKET", shares: 100, state: "OPEN",
+						Actor: "Sam", Timecreated: time.Now().Unix() + n,
+						Intent: "SELL", Kind: "MARKET", Shares: 100, State: "OPEN",
 					},
 				},
 				BuyLimit{
-					bid: 10.05, 
+					Bid: 10.05, 
 					BaseOrder: &BaseOrder{
-						actor: "Sally", timecreated: time.Now().Unix() + n, 
-						intent: "BUY", kind: "LIMIT", shares: 80, state: "OPEN",
+						Actor: "Sally", Timecreated: time.Now().Unix() + n, 
+						Intent: "BUY", Kind: "LIMIT", Shares: 80, State: "OPEN",
 					},
 				},
 			}
@@ -99,7 +99,7 @@ func Test(t *testing.T){
 
 			g.Describe("getOrder method", func(){
 				g.It("should provide access to the embeded order struct", func(){
-					g.Assert(orders[0].getOrder().shares).Equal(100)
+					g.Assert(orders[0].getOrder().Shares).Equal(100)
 				})
 			})
 		})
@@ -183,7 +183,7 @@ func Test(t *testing.T){
 
 				var lookup = orderBook.sellQueue.Peek().Lookup
 				var thing = *(orderBook.sellHash[lookup])
-				g.Assert(thing.getOrder().shares).Equal(20)
+				g.Assert(thing.getOrder().Shares).Equal(20)
 			})
 			
 		})

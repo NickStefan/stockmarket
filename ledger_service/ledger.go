@@ -80,11 +80,12 @@ func main() {
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&payload)
 		if err != nil {
+			fmt.Println("ERR: LEDGER_SERVICE")
 			panic(err)
 		}
+		processTrade(dataStore, payload[0], payload[1])
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))
-		processTrade(dataStore, payload[0], payload[1])
 	})
 
 	http.HandleFunc("/report", func(w http.ResponseWriter, r *http.Request) {

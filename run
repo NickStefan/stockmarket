@@ -2,6 +2,11 @@
 
 services=`cat services`
 
+function trade {
+  curl -H "Content-Type: application/json" -X POST -d '{bid: 10.10, baseorder: {actor: "Bob", timecreated: 12412132, intent: "BUY", shares: 100, state: "OPEN", ticker: "STOCK", kind: "LIMIT"}}' http://localhost:8001/
+  # curl -H "Content-Type: application/json" -X POST -d '{ask: 10.05, baseorder: {actor: "Tim", timecreated: 12412132, intent: "SELL", shares: 100, state: "OPEN", ticker: "STOCK", kind: "LIMIT"}}' http://localhost:8001/
+}
+
 # LOCAL
 if [[ $1 == "local" ]]; then
   for service in $services; do
@@ -13,6 +18,10 @@ if [[ $1 == "local" ]]; then
   for service in $services; do
     $GOPATH/bin/$service &
   done
+
+  # wait for the db to set up after dropping the previous one
+  sleep 15
+  trade
 fi
 
 

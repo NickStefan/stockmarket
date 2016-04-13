@@ -14,17 +14,17 @@ import (
 // limit sell order "i will sell 100 shares highest available price above _____"
 
 type BaseOrder struct {
-	shares int
-	ticker string
-	actor string // BOB
-	intent string // BUY || SELL
-	kind string // MARKET || LIMIT
-	state string // OPEN || FILLED || CANCELED
-	timecreated int64 // unix time
+	Shares int `json:"shares"`
+	Ticker string `json:"ticker"` // STOCK
+	Actor string `json:"actor"`   // BOB
+	Intent string `json:"intent"` // BUY || SELL
+	Kind string `json:"kind"`			// MARKET || LIMIT
+	State string `json:"state"`   // OPEN || FILLED || CANCELED
+	Timecreated int64 `json:"timecreated"` // unix time
 }
 
 func (b *BaseOrder) lookup() string {
-	return b.actor + strconv.FormatInt(b.timecreated, 10)
+	return b.Actor + strconv.FormatInt(b.Timecreated, 10)
 }
 
 func (b *BaseOrder) getOrder() *BaseOrder {
@@ -32,38 +32,38 @@ func (b *BaseOrder) getOrder() *BaseOrder {
 }
 
 func (b *BaseOrder) partialFill(price float64, newShares int) Trade {
-	b.shares = newShares
+	b.Shares = newShares
 	return Trade{
-		Actor: b.actor, Shares: b.shares - newShares,
-		Price: price, Intent: b.intent, Kind: b.kind, Ticker: b.ticker,
+		Actor: b.Actor, Shares: b.Shares - newShares,
+		Price: price, Intent: b.Intent, Kind: b.Kind, Ticker: b.Ticker,
 		Time: time.Now().Unix(),
 	}
 }
 
 func (b *BaseOrder) fill(price float64) Trade {
 	return Trade{
-		Actor: b.actor, Shares: b.shares, Price: price,
-		Intent: b.intent, Ticker: b.ticker, Kind: b.kind,
+		Actor: b.Actor, Shares: b.Shares, Price: price,
+		Intent: b.Intent, Ticker: b.Ticker, Kind: b.Kind,
 		Time: time.Now().Unix(),
 	}
 }
 
 type BuyLimit struct {
-	bid float64
-	*BaseOrder
+	Bid float64 `json:"bid"`
+	*BaseOrder `json:"baseorder"`
 }
 
 type SellLimit struct {
-	ask float64
-	*BaseOrder
+	Ask float64 `json:"ask"`
+	*BaseOrder `json:"baseorder"`
 }
 
 type BuyMarket struct {
-	*BaseOrder
+	*BaseOrder `json:"baseorder"`
 }
 
 type SellMarket struct {
-	*BaseOrder
+	*BaseOrder `json:"baseorder"`
 }
 
 // create a consistent interface for the different types of orders
@@ -77,11 +77,11 @@ type Order interface {
 }
 
 func (b BuyLimit) price() float64 {
-	return b.bid
+	return b.Bid
 }
 
 func (s SellLimit) price() float64 {
-	return s.ask
+	return s.Ask
 }
 
 func (b BuyMarket) price() float64 {

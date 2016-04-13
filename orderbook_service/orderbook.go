@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"fmt"
 )
 
 // how does a stock market organize the orders? Depth of Market or OrderBook
@@ -37,14 +38,14 @@ func (o *OrderBook) setTradeHandler(execTrade tradehandler) {
 
 func (o *OrderBook) add(order Order) {
 
-	if order.getOrder().intent == "BUY" {
+	if order.getOrder().Intent == "BUY" {
 		o.buyHash[order.lookup()] = &order
 		o.buyQueue.Enqueue(&heap.Node{
 			Value: order.price(),
 			Lookup: order.lookup(),
 		})
 
-	} else if order.getOrder().intent == "SELL" {
+	} else if order.getOrder().Intent == "SELL" {
 		o.sellHash[order.lookup()] = &order
 		o.sellQueue.Enqueue(&heap.Node{
 			Value: order.price(),
@@ -54,8 +55,8 @@ func (o *OrderBook) add(order Order) {
 }
 
 func (o *OrderBook) negotiatePrice(b Order, s Order) float64 {
-	bKind := b.getOrder().kind
-	sKind := s.getOrder().kind
+	bKind := b.getOrder().Kind
+	sKind := s.getOrder().Kind
 
 	if bKind == "MARKET" && sKind == "LIMIT" {
 		o.lastPrice = s.price()
@@ -81,7 +82,7 @@ func (o *OrderBook) run() {
 		sell := *(o.sellHash[ sellTop.Lookup ])
 		price := o.negotiatePrice(buy, sell)
 
-		if buy.getOrder().shares == sell.getOrder().shares {
+		if buy.getOrder().Shares == sell.getOrder().Shares {
 			o.buyQueue.Dequeue()
 			o.sellQueue.Dequeue()
 
@@ -90,17 +91,17 @@ func (o *OrderBook) run() {
 			delete(o.buyHash, buyTop.Lookup)
 			delete(o.sellHash, sellTop.Lookup)
 
-		} else if buy.getOrder().shares < sell.getOrder().shares {
+		} else if buy.getOrder().Shares < sell.getOrder().Shares {
 			o.buyQueue.Dequeue()
-			remainderSell := sell.getOrder().shares - buy.getOrder().shares
+			remainderSell := sell.getOrder().Shares - buy.getOrder().Shares
 			
 			o.handleTrade(buy.fill(price), sell.partialFill(price, remainderSell))
  
 			delete(o.buyHash, buyTop.Lookup)
 		
-		} else if buy.getOrder().shares > sell.getOrder().shares {
+		} else if buy.getOrder().Shares > sell.getOrder().Shares {
 			o.sellQueue.Dequeue()
-			remainderBuy := buy.getOrder().shares - sell.getOrder().shares
+			remainderBuy := buy.getOrder().Shares - sell.getOrder().Shares
 			
 			o.handleTrade(sell.fill(price), sell.partialFill(price, remainderBuy))
 
@@ -149,27 +150,38 @@ func main() {
 	})
 
 	anOrder := SellLimit{
-		ask: 10.05, 
+		Ask: 10.05, 
 		BaseOrder: &BaseOrder{
-			actor: "Tim", timecreated: time.Now().Unix(),
-			intent: "SELL", shares: 100, state: "OPEN", ticker: "STOCK",
-			kind: "LIMIT",
+			Actor: "Tim", Timecreated: time.Now().Unix(),
+			Intent: "SELL", Shares: 100, State: "OPEN", Ticker: "STOCK",
+			Kind: "LIMIT",
 		},
 	}
 
 	anotherOrder := BuyLimit{
-		bid: 10.10, 
+		Bid: 10.10, 
 		BaseOrder: &BaseOrder{
-			actor: "Bob", timecreated: time.Now().Unix(),
-			intent: "BUY", shares: 100, state: "OPEN", ticker: "STOCK",
-			kind: "LIMIT",
+			Actor: "Bob", Timecreated: time.Now().Unix(),
+			Intent: "BUY", Shares: 100, State: "OPEN", Ticker: "STOCK",
+			Kind: "LIMIT",
 		},
 	}
 	orderBook.add(anOrder)
 	orderBook.add(anotherOrder)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		orderBook.run()
+		var buyL BuyLimit
+		// var sellL SellLimit
+
+		decoder := json.NewDecoder(r.Body)
+		err := decoder.Decode(&buyL)
+		if err != nil {
+			fmt.Println("ERR: ORDERBOOK_SERVICE")
+			panic(err)
+		}
+
+		fmt.Println("buyL", buyL)
+
 		w.WriteHeader(http.StatusOK)
         w.Write([]byte("Status 200"))
 	})
