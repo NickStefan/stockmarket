@@ -3,8 +3,8 @@
 services=`cat services`
 
 function trade {
-  curl -H "Content-Type: application/json" -X POST -d '{bid: 10.10, baseorder: {actor: "Bob", timecreated: 12412132, intent: "BUY", shares: 100, state: "OPEN", ticker: "STOCK", kind: "LIMIT"}}' http://localhost:8001/
-  # curl -H "Content-Type: application/json" -X POST -d '{ask: 10.05, baseorder: {actor: "Tim", timecreated: 12412132, intent: "SELL", shares: 100, state: "OPEN", ticker: "STOCK", kind: "LIMIT"}}' http://localhost:8001/
+  curl -H "Content-Type: application/json" -X POST -d '{"buylimit": [{"bid": 10.10, "baseorder": {"actor": "Bob", "timecreated": 12412132, "intent": "BUY", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}}]}' http://localhost:8001/
+  curl -H "Content-Type: application/json" -X POST -d '{"selllimit": [{"ask": 10.05, "baseorder": {"actor": "Tim", "timecreated": 12412132, "intent": "SELL", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}}]}' http://localhost:8001/
 }
 
 # LOCAL

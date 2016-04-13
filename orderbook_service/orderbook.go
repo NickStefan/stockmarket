@@ -1,7 +1,7 @@
 package main
 
 import (
-	"time"
+	// "time"
 	"github.com/nickstefan/market/orderbook_service/heap"
 	"bytes"
 	"encoding/json"
@@ -113,6 +113,20 @@ func (o *OrderBook) run() {
 	}
 }
 
+func (o *OrderBook) addAll(payload Payload) {
+	for _, order := range payload.BuyLimit {
+		o.add(order)
+	}
+	for _, order := range payload.BuyMarket {
+		o.add(order)
+	}
+	for _, order := range payload.SellLimit {
+		o.add(order)
+	}
+	for _, order := range payload.SellMarket {
+		o.add(order)
+	}
+}
 
 type Trade struct {
 	Actor string `json:"actor"`
@@ -124,6 +138,14 @@ type Trade struct {
 	State  string `json:"state"`
 	Time int64 `json:"time"`
 }
+
+type Payload struct {
+	BuyLimit []BuyLimit `json:"buylimit"`
+	BuyMarket []BuyMarket `json:"buymarket"`
+	SellLimit []SellLimit `json:"selllimit"`
+	SellMarket []SellMarket `json:"sellmarket"`
+}
+
 
 func main() {
 
@@ -149,38 +171,17 @@ func main() {
 		}
 	})
 
-	anOrder := SellLimit{
-		Ask: 10.05, 
-		BaseOrder: &BaseOrder{
-			Actor: "Tim", Timecreated: time.Now().Unix(),
-			Intent: "SELL", Shares: 100, State: "OPEN", Ticker: "STOCK",
-			Kind: "LIMIT",
-		},
-	}
-
-	anotherOrder := BuyLimit{
-		Bid: 10.10, 
-		BaseOrder: &BaseOrder{
-			Actor: "Bob", Timecreated: time.Now().Unix(),
-			Intent: "BUY", Shares: 100, State: "OPEN", Ticker: "STOCK",
-			Kind: "LIMIT",
-		},
-	}
-	orderBook.add(anOrder)
-	orderBook.add(anotherOrder)
-
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		var buyL BuyLimit
-		// var sellL SellLimit
-
+		var payload Payload
 		decoder := json.NewDecoder(r.Body)
-		err := decoder.Decode(&buyL)
+		err := decoder.Decode(&payload)
 		if err != nil {
 			fmt.Println("ERR: ORDERBOOK_SERVICE")
 			panic(err)
 		}
 
-		fmt.Println("buyL", buyL)
+		orderBook.addAll(payload)
+		orderBook.run()
 
 		w.WriteHeader(http.StatusOK)
         w.Write([]byte("Status 200"))
