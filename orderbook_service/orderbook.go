@@ -94,7 +94,7 @@ func (o *OrderBook) run() {
 		} else if buy.Shares < sell.Shares {
 			o.buyQueue.Dequeue()
 			remainderSell := sell.Shares - buy.Shares
-			
+
 			o.handleTrade(buy.fill(price), sell.partialFill(price, remainderSell))
  
 			delete(o.buyHash, buyTop.Lookup)
@@ -113,12 +113,6 @@ func (o *OrderBook) run() {
 	}
 }
 
-func (o *OrderBook) addAll(payload Payload) {
-	for _, order := range payload.Orders {
-		o.add(order)
-	}
-}	
-
 type Trade struct {
 	Actor string `json:"actor"`
 	Shares int `json:"shares"`
@@ -130,9 +124,6 @@ type Trade struct {
 	Time int64 `json:"time"`
 }
 
-type Payload struct {
-	Orders []*Order `json:"orders"`
-}
 
 func main() {
 
@@ -159,7 +150,10 @@ func main() {
 	})
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		var payload Payload
+		var payload struct {
+			Orders []*Order `json:"orders"`
+		}
+
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&payload)
 		if err != nil {
@@ -167,7 +161,9 @@ func main() {
 			panic(err)
 		}
 
-		orderBook.addAll(payload)
+		for _, order := range payload.Orders {
+			orderBook.add(order)
+		}
 		orderBook.run()
 
 		w.WriteHeader(http.StatusOK)

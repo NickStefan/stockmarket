@@ -9,19 +9,19 @@ function trade {
 
     if [[ $[i % 5] == 0 && $[i % 3] == 0 ]]; then
       price=$((price + 10))
-      curl -H "Content-Type: application/json" -X POST -d '{"buylimit": [{"bid": '"$price"', "baseorder": {"actor": "Bob", "timecreated": '"$((12412132 + i))"', "intent": "BUY", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}}]}' http://localhost:8001/
+      curl -H "Content-Type: application/json" -X POST -d '{"orders": [{"bid": '"$price"', "actor": "Bob", "timecreated": '"$((12412132 + i))"', "intent": "BUY", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}]}' http://localhost:8001/
 
     elif [[ $[i % 5] == 0 ]]; then
       price=$((price - 5))
-      curl -H "Content-Type: application/json" -X POST -d '{"selllimit": [{"ask": '"$price"', "baseorder": {"actor": "Tim", "timecreated": '"$((12412132 + i))"', "intent": "SELL", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}}]}' http://localhost:8001/
+      curl -H "Content-Type: application/json" -X POST -d '{"orders": [{"ask": '"$price"', "actor": "Tim", "timecreated": '"$((12412132 + i))"', "intent": "SELL", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}]}' http://localhost:8001/
     
     elif [[ $[i % 3] == 0 ]]; then
       price=$((price - 1))
-      curl -H "Content-Type: application/json" -X POST -d '{"buylimit": [{"bid": '"$price"', "baseorder": {"actor": "Bob", "timecreated": '"$((12412132 + i))"', "intent": "BUY", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}}]}' http://localhost:8001/
+      curl -H "Content-Type: application/json" -X POST -d '{"orders": [{"bid": '"$price"', "actor": "Bob", "timecreated": '"$((12412132 + i))"', "intent": "BUY", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}]}' http://localhost:8001/
     
     else 
       price=$((price + 1))
-      curl -H "Content-Type: application/json" -X POST -d '{"selllimit": [{"ask": '"$price"', "baseorder": {"actor": "Tim", "timecreated": '"$((12412132 + i))"', "intent": "SELL", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}}]}' http://localhost:8001/
+      curl -H "Content-Type: application/json" -X POST -d '{"orders": [{"ask": '"$price"', "actor": "Tim", "timecreated": '"$((12412132 + i))"', "intent": "SELL", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}]}' http://localhost:8001/
     fi
     echo $price
   done
