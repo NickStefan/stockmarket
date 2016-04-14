@@ -3,6 +3,7 @@ package main
 import (
     // "fmt"
     "gopkg.in/mgo.v2"
+    "time"
 )
 
 type Minute struct {
@@ -12,6 +13,7 @@ type Minute struct {
     Close float64 `json:"close"`
     Volume int `json:"volume"`
     Ticker string `json:"ticker"`
+    Time int64 `json:"time"`
 }
 
 type MinuteHash struct {
@@ -43,6 +45,7 @@ func (m *MinuteHash) add(t Trade) {
         minute.High = t.Price
         minute.Low = t.Price
         minute.Close = t.Price
+        minute.Time = time.Now().Unix()
     }
 
     if minute.Low > t.Price {

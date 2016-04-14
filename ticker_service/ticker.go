@@ -16,7 +16,7 @@ type Trade struct {
     Intent string `json:"intent"`
     Kind string `json:"kind"`
     State  string `json:"state"`
-    Time float64 `json:"time"`
+    Time int64 `json:"time"`
 }
 
 func schedule(f func(), delaySeconds time.Duration) chan struct{} {
@@ -96,7 +96,7 @@ func main() {
             fmt.Println("ERR: TICKER_SERVICE")
             panic(err)
         }
-        fmt.Println("TRADE ", payload[0].Price)
+        fmt.Println("TRADE ", payload[0].Price, payload[0].Time)
         minuteHash.add(payload[0])
 
         w.WriteHeader(http.StatusOK)
