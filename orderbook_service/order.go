@@ -3,6 +3,7 @@ package main
 import (
 	"time"
  	"strconv"
+ 	// "fmt"
 )
 
 // what makes up a stock market? competing buy and sell orders
@@ -13,81 +14,55 @@ import (
 // market sell order "i will sell 100 shares at the highest available price"
 // limit sell order "i will sell 100 shares highest available price above _____"
 
-type BaseOrder struct {
-	Shares int `json:"shares"`
-	Ticker string `json:"ticker"` // STOCK
-	Actor string `json:"actor"`   // BOB
-	Intent string `json:"intent"` // BUY || SELL
-	Kind string `json:"kind"`			// MARKET || LIMIT
-	State string `json:"state"`   // OPEN || FILLED || CANCELED
-	Timecreated int64 `json:"timecreated"` // unix time
-}
-
-func (b *BaseOrder) lookup() string {
-	return b.Actor + strconv.FormatInt(b.Timecreated, 10)
-}
-
-func (b *BaseOrder) getOrder() *BaseOrder {
-	return b
-}
-
-func (b *BaseOrder) partialFill(price float64, newShares int) Trade {
-	b.Shares = newShares
-	return Trade{
-		Actor: b.Actor, Shares: b.Shares - newShares,
-		Price: price, Intent: b.Intent, Kind: b.Kind, Ticker: b.Ticker,
-		Time: time.Now().Unix(),
-	}
-}
-
-func (b *BaseOrder) fill(price float64) Trade {
-	return Trade{
-		Actor: b.Actor, Shares: b.Shares, Price: price,
-		Intent: b.Intent, Ticker: b.Ticker, Kind: b.Kind,
-		Time: time.Now().Unix(),
-	}
-}
-
-type BuyLimit struct {
+type Order struct {
 	Bid float64 `json:"bid"`
-	*BaseOrder `json:"baseorder"`
-}
-
-type SellLimit struct {
 	Ask float64 `json:"ask"`
-	*BaseOrder `json:"baseorder"`
+	Shares int `json:"shares"`
+	Ticker string `json:"ticker"` 						// STOCK
+	Actor string `json:"actor"`   						// BOB
+	Intent string `json:"intent"` 						// BUY || SELL
+	Kind string `json:"kind"`									// MARKET || LIMIT
+	State string `json:"state"`   						// OPEN || FILLED || CANCELED
+	Timecreated int64 `json:"timecreated"` 		// unix time
 }
 
-type BuyMarket struct {
-	*BaseOrder `json:"baseorder"`
+func (o *Order) lookup() string {
+	return o.Actor + strconv.FormatInt(o.Timecreated, 10)
 }
 
-type SellMarket struct {
-	*BaseOrder `json:"baseorder"`
+func (o *Order) partialFill(price float64, newShares int) Trade {
+	o.Shares = newShares
+	return Trade{
+		Actor: o.Actor, Shares: o.Shares - newShares,
+		Price: price, Intent: o.Intent, Kind: o.Kind, Ticker: o.Ticker,
+		Time: time.Now().Unix(),
+	}
 }
 
-// create a consistent interface for the different types of orders
-
-type Order interface {
-	price() float64
-	lookup() string
-	getOrder() *BaseOrder
-	partialFill(price float64, newShares int) Trade
-	fill(price float64) Trade
+func (o *Order) fill(price float64) Trade {
+	return Trade{
+		Actor: o.Actor, Shares: o.Shares, Price: price,
+		Intent: o.Intent, Ticker: o.Ticker, Kind: o.Kind,
+		Time: time.Now().Unix(),
+	}
 }
 
-func (b BuyLimit) price() float64 {
-	return b.Bid
-}
+func (o *Order) price() float64 {
+	K := o.Kind
+	I := o.Intent
 
-func (s SellLimit) price() float64 {
-	return s.Ask
-}
+	if I == "BUY" && K == "LIMIT" {
+		return o.Bid
 
-func (b BuyMarket) price() float64 {
+	} else if I == "SELL" && K == "LIMIT" {
+		return o.Ask
+
+	} else if I == "BUY" && K == "MARKET" {
+		return 1000000.00
+
+	} else if I == "SELL" && K == "MARKET" {
+		return 0.00
+	} 
+	// should never get here
 	return 1000000.00
-}
-
-func (s SellMarket) price() float64 {
-	return 0.00
 }

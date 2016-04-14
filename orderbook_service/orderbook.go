@@ -36,17 +36,17 @@ func (o *OrderBook) setTradeHandler(execTrade tradehandler) {
 	o.handleTrade = execTrade
 }
 
-func (o *OrderBook) add(order Order) {
+func (o *OrderBook) add(order *Order) {
 
-	if order.getOrder().Intent == "BUY" {
-		o.buyHash[order.lookup()] = &order
+	if order.Intent == "BUY" {
+		o.buyHash[order.lookup()] = order
 		o.buyQueue.Enqueue(&heap.Node{
 			Value: order.price(),
 			Lookup: order.lookup(),
 		})
 
-	} else if order.getOrder().Intent == "SELL" {
-		o.sellHash[order.lookup()] = &order
+	} else if order.Intent == "SELL" {
+		o.sellHash[order.lookup()] = order
 		o.sellQueue.Enqueue(&heap.Node{
 			Value: order.price(),
 			Lookup: order.lookup(),
@@ -54,9 +54,9 @@ func (o *OrderBook) add(order Order) {
 	}
 }
 
-func (o *OrderBook) negotiatePrice(b Order, s Order) float64 {
-	bKind := b.getOrder().Kind
-	sKind := s.getOrder().Kind
+func (o *OrderBook) negotiatePrice(b *Order, s *Order) float64 {
+	bKind := b.Kind
+	sKind := s.Kind
 
 	if bKind == "MARKET" && sKind == "LIMIT" {
 		o.lastPrice = s.price()
@@ -78,11 +78,11 @@ func (o *OrderBook) run() {
 	
 	for (buyTop != nil && sellTop != nil && buyTop.Value >= sellTop.Value) {
 		
-		buy := *(o.buyHash[ buyTop.Lookup ])
-		sell := *(o.sellHash[ sellTop.Lookup ])
+		buy := o.buyHash[ buyTop.Lookup ]
+		sell := o.sellHash[ sellTop.Lookup ]
 		price := o.negotiatePrice(buy, sell)
 
-		if buy.getOrder().Shares == sell.getOrder().Shares {
+		if buy.Shares == sell.Shares {
 			o.buyQueue.Dequeue()
 			o.sellQueue.Dequeue()
 
@@ -91,17 +91,17 @@ func (o *OrderBook) run() {
 			delete(o.buyHash, buyTop.Lookup)
 			delete(o.sellHash, sellTop.Lookup)
 
-		} else if buy.getOrder().Shares < sell.getOrder().Shares {
+		} else if buy.Shares < sell.Shares {
 			o.buyQueue.Dequeue()
-			remainderSell := sell.getOrder().Shares - buy.getOrder().Shares
+			remainderSell := sell.Shares - buy.Shares
 			
 			o.handleTrade(buy.fill(price), sell.partialFill(price, remainderSell))
  
 			delete(o.buyHash, buyTop.Lookup)
 		
-		} else if buy.getOrder().Shares > sell.getOrder().Shares {
+		} else if buy.Shares > sell.Shares {
 			o.sellQueue.Dequeue()
-			remainderBuy := buy.getOrder().Shares - sell.getOrder().Shares
+			remainderBuy := buy.Shares - sell.Shares
 			
 			o.handleTrade(sell.fill(price), sell.partialFill(price, remainderBuy))
 
@@ -114,19 +114,10 @@ func (o *OrderBook) run() {
 }
 
 func (o *OrderBook) addAll(payload Payload) {
-	for _, order := range payload.BuyLimit {
+	for _, order := range payload.Orders {
 		o.add(order)
 	}
-	for _, order := range payload.BuyMarket {
-		o.add(order)
-	}
-	for _, order := range payload.SellLimit {
-		o.add(order)
-	}
-	for _, order := range payload.SellMarket {
-		o.add(order)
-	}
-}
+}	
 
 type Trade struct {
 	Actor string `json:"actor"`
@@ -140,12 +131,8 @@ type Trade struct {
 }
 
 type Payload struct {
-	BuyLimit []BuyLimit `json:"buylimit"`
-	BuyMarket []BuyMarket `json:"buymarket"`
-	SellLimit []SellLimit `json:"selllimit"`
-	SellMarket []SellMarket `json:"sellmarket"`
+	Orders []*Order `json:"orders"`
 }
-
 
 func main() {
 

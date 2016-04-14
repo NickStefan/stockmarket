@@ -9,51 +9,37 @@ import (
 
 func createDummyOrders(n int64) [7]Order {
 	return [7]Order{
-				BuyLimit{
-					Bid: 10.05, 
-					BaseOrder: &BaseOrder{
+				Order{
+						Bid: 10.05,
 						Actor: "Bob", Timecreated: time.Now().Unix() + n, 
 						Intent: "BUY", Kind: "LIMIT", Shares: 100, State: "OPEN",
-					},
 				},
-				BuyMarket{
-					BaseOrder: &BaseOrder{
+				Order{
 						Actor: "Tim", Timecreated: time.Now().Unix() + n,
 						Intent: "BUY", Kind: "MARKET", Shares: 100, State: "OPEN",
-					},
 				},
-				BuyLimit{
-					Bid: 10.00, 
-					BaseOrder: &BaseOrder{
+				Order{
+						Bid: 10.00, 
 						Actor: "Gary", Timecreated: time.Now().Unix() + n,
 						Intent: "BUY", Kind: "LIMIT", Shares: 100, State: "OPEN",
-					},
 				},
-				SellMarket{
-					BaseOrder: &BaseOrder{
+				Order{
 						Actor: "Terry", Timecreated: time.Now().Unix() + n,
 						Intent: "SELL", Kind: "MARKET", Shares: 100, State: "OPEN",
-					},
 				},
-				SellLimit{
-					Ask: 10.10, 
-					BaseOrder: &BaseOrder{
+				Order{
+						Ask: 10.10, 
 						Actor: "Larry", Timecreated: time.Now().Unix() + n,
 						Intent: "SELL", Kind: "LIMIT", Shares: 100, State: "OPEN",
-					},
 				},
-				SellMarket{
-					BaseOrder: &BaseOrder{
+				Order{
 						Actor: "Sam", Timecreated: time.Now().Unix() + n,
 						Intent: "SELL", Kind: "MARKET", Shares: 100, State: "OPEN",
-					},
 				},
-				BuyLimit{
-					Bid: 10.05, 
-					BaseOrder: &BaseOrder{
+				Order{
+						Bid: 10.05, 
 						Actor: "Sally", Timecreated: time.Now().Unix() + n, 
 						Intent: "BUY", Kind: "LIMIT", Shares: 80, State: "OPEN",
-					},
 				},
 			}
 }
@@ -71,7 +57,7 @@ func Test(t *testing.T){
 			moreOrders = createDummyOrders(1)
 		})
 
-		g.Describe("Order Interface", func(){
+		g.Describe("Order", func(){
 
 			g.Describe("price method", func(){
 				g.It("should equal the bid on a BuyLimit", func(){
@@ -97,9 +83,9 @@ func Test(t *testing.T){
 				})
 			})
 
-			g.Describe("getOrder method", func(){
-				g.It("should provide access to the embeded order struct", func(){
-					g.Assert(orders[0].getOrder().Shares).Equal(100)
+			g.Describe("properties", func(){
+				g.It("should provide access to properties", func(){
+					g.Assert(orders[0].Shares).Equal(100)
 				})
 			})
 		})
@@ -110,7 +96,7 @@ func Test(t *testing.T){
 				orderBook := NewOrderBook()
 
 				for i := 0; i < 6; i++ {
-					orderBook.add(orders[i])
+					orderBook.add(&orders[i])
 				}
 
 				g.Assert(orderBook.buyQueue.Dequeue().Value).Equal(1000000.00)
@@ -127,7 +113,7 @@ func Test(t *testing.T){
 				orderBook := NewOrderBook()
 
 				for i :=0; i < 6; i++ {
-					orderBook.add(orders[i])
+					orderBook.add(&orders[i])
 				}
 
 				// filling orders will dequeue filled orders,
@@ -141,12 +127,12 @@ func Test(t *testing.T){
 				orderBook := NewOrderBook()
 
 				for i :=0; i < 6; i++ {
-					orderBook.add(orders[i])
+					orderBook.add(&orders[i])
 				}
 
 				orderBook.run()
 
-				orderBook.add(orders[1])
+				orderBook.add(&orders[1])
 
 				orderBook.run()
 
@@ -163,8 +149,8 @@ func Test(t *testing.T){
 					g.Assert(o.Price).Equal(10.05)
 				})
 
-				orderBook.add(orders[0])
-				orderBook.add(orders[3])
+				orderBook.add(&orders[0])
+				orderBook.add(&orders[3])
 				orderBook.run()
 			})
 
@@ -177,13 +163,13 @@ func Test(t *testing.T){
 				})
 				
 				// set one order to be smaller than the other
-				orderBook.add(orders[6])
-				orderBook.add(orders[3])
+				orderBook.add(&orders[6])
+				orderBook.add(&orders[3])
 				orderBook.run()
 
 				var lookup = orderBook.sellQueue.Peek().Lookup
-				var thing = *(orderBook.sellHash[lookup])
-				g.Assert(thing.getOrder().Shares).Equal(20)
+				var thing = orderBook.sellHash[lookup]
+				g.Assert(thing.Shares).Equal(20)
 			})
 			
 		})
