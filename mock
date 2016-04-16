@@ -5,7 +5,7 @@ function trade {
   price=$((10))
 
   for i in {1..200}; do
-    sleep 1
+    # sleep 1
 
     if [[ $[i % 5] == 0 && $[i % 3] == 0 ]]; then
       price=$((price + 10))

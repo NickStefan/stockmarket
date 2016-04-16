@@ -18,7 +18,13 @@ if [[ $1 == "local" ]]; then
 
   # wait for the db to set up after dropping the previous one
   sleep 15
-  trade
+  time trade
+fi
+
+
+# TRADE
+if [[ $1 == "trade" ]]; then
+  time trade
 fi
 
 

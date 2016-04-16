@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"fmt"
+	// "net/http/pprof"
 )
 
 // how does a stock market organize the orders? Depth of Market or OrderBook
@@ -127,8 +128,8 @@ type Trade struct {
 
 func main() {
 
-	ledgerUrl := "http://localhost:8002/fill"
-	tickerUrl := "http://localhost:8003/"
+	ledgerUrl := "http://127.0.0.1:8002/fill"
+	tickerUrl := "http://127.0.0.1:8003/"
 	
 	orderBook := NewOrderBook()
 
@@ -167,7 +168,7 @@ func main() {
 		orderBook.run()
 
 		w.WriteHeader(http.StatusOK)
-        w.Write([]byte("Status 200"))
+    w.Write([]byte("Status 200"))
 	})
 	http.ListenAndServe(":8001", nil)
 }
