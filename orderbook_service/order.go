@@ -3,6 +3,7 @@ package main
 import (
 	"time"
  	"strconv"
+ 	"sync"
  	// "fmt"
 )
 
@@ -65,4 +66,36 @@ func (o *Order) price() float64 {
 	} 
 	// should never get here
 	return 1000000.00
+}
+
+
+// CONCURRENCY SAFE ORDER HASH
+
+type OrderHash struct {
+	data map[string]*Order
+	sync.RWMutex
+}
+
+func (o *OrderHash) get(key string) *Order {
+	o.RLock()
+	defer o.RUnlock()
+	return o.data[key]
+}
+
+func (o *OrderHash) set(key string, order *Order){
+	o.Lock()
+	o.data[key] = order
+	o.Unlock()
+}
+
+func (o *OrderHash) remove(key string){
+	o.Lock()
+	delete(o.data, key)
+	o.Unlock()
+}
+
+func NewOrderHash() *OrderHash {
+	return &OrderHash{
+		data: make(map[string]*Order),
+	}
 }

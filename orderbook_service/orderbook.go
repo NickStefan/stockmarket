@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"fmt"
-	// "net/http/pprof"
 )
 
 // how does a stock market organize the orders? Depth of Market or OrderBook
@@ -17,8 +16,8 @@ type OrderBook struct {
 	handleTrade tradehandler
 	buyQueue heap.Heap
 	sellQueue heap.Heap
-	buyHash map[string]*Order
-	sellHash map[string]*Order
+	buyHash *OrderHash
+	sellHash *OrderHash
 }
 
 type tradehandler func(Trade, Trade)
@@ -26,8 +25,8 @@ type tradehandler func(Trade, Trade)
 func NewOrderBook() *OrderBook {
 	return &OrderBook{
 		handleTrade: func(t Trade, o Trade) { },
-		buyHash: make(map[string]*Order),
-		sellHash: make(map[string]*Order),
+		buyHash: NewOrderHash(),
+		sellHash: NewOrderHash(),
 		buyQueue: heap.Heap{Priority: "max"},
 		sellQueue: heap.Heap{Priority: "min"},
 	}
@@ -40,14 +39,14 @@ func (o *OrderBook) setTradeHandler(execTrade tradehandler) {
 func (o *OrderBook) add(order *Order) {
 
 	if order.Intent == "BUY" {
-		o.buyHash[order.lookup()] = order
+		o.buyHash.set(order.lookup(), order)
 		o.buyQueue.Enqueue(&heap.Node{
 			Value: order.price(),
 			Lookup: order.lookup(),
 		})
 
 	} else if order.Intent == "SELL" {
-		o.sellHash[order.lookup()] = order
+		o.sellHash.set(order.lookup(), order)
 		o.sellQueue.Enqueue(&heap.Node{
 			Value: order.price(),
 			Lookup: order.lookup(),
@@ -79,8 +78,8 @@ func (o *OrderBook) run() {
 	
 	for (buyTop != nil && sellTop != nil && buyTop.Value >= sellTop.Value) {
 		
-		buy := o.buyHash[ buyTop.Lookup ]
-		sell := o.sellHash[ sellTop.Lookup ]
+		buy := o.buyHash.get( buyTop.Lookup )
+		sell := o.sellHash.get( sellTop.Lookup )
 		price := o.negotiatePrice(buy, sell)
 
 		if buy.Shares == sell.Shares {
@@ -88,9 +87,9 @@ func (o *OrderBook) run() {
 			o.sellQueue.Dequeue()
 
 			o.handleTrade(buy.fill(price), sell.fill(price))
-			
-			delete(o.buyHash, buyTop.Lookup)
-			delete(o.sellHash, sellTop.Lookup)
+				
+			o.buyHash.remove( buyTop.Lookup )
+			o.sellHash.remove( sellTop.Lookup )
 
 		} else if buy.Shares < sell.Shares {
 			o.buyQueue.Dequeue()
@@ -98,7 +97,7 @@ func (o *OrderBook) run() {
 
 			o.handleTrade(buy.fill(price), sell.partialFill(price, remainderSell))
  
-			delete(o.buyHash, buyTop.Lookup)
+			o.buyHash.remove( buyTop.Lookup )
 		
 		} else if buy.Shares > sell.Shares {
 			o.sellQueue.Dequeue()
@@ -106,7 +105,7 @@ func (o *OrderBook) run() {
 			
 			o.handleTrade(sell.fill(price), sell.partialFill(price, remainderBuy))
 
-			delete(o.sellHash, sellTop.Lookup)
+			o.sellHash.remove( sellTop.Lookup )
 		}
 		
 		buyTop = o.buyQueue.Peek()
@@ -139,15 +138,17 @@ func main() {
 			panic(err)
 		}
 
-		_, err = http.Post(ledgerUrl, "application/json", bytes.NewBuffer(trade))
+		ledgerResp, err := http.Post(ledgerUrl, "application/json", bytes.NewBuffer(trade))
 		if err != nil {
 			panic(err)
 		}
+		defer ledgerResp.Body.Close()
 
-		_, err = http.Post(tickerUrl, "application/json", bytes.NewBuffer(trade))
+		tickerResp, err := http.Post(tickerUrl, "application/json", bytes.NewBuffer(trade))
 		if err != nil {
 			panic(err)
 		}
+		defer tickerResp.Body.Close()
 	})
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
