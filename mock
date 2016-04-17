@@ -3,28 +3,30 @@
 function trade {
 
   price=$((10))
+  timeStamp=$(date +%s)
 
   for i in {1..200}; do
     # sleep 1
+    # echo $((timeStamp + i))
 
     if [[ $[i % 5] == 0 && $[i % 3] == 0 ]]; then
       price=$((price + 10))
-      curl -H "Content-Type: application/json" -X POST -d '{"orders": [{"bid": '"$price"', "actor": "Bob", "timecreated": '"$((12412132 + i))"', "intent": "BUY", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}]}' http://localhost:8001/
+      curl -H "Content-Type: application/json" -X POST -d '{"orders": [{"bid": '"$price"', "actor": "Bob", "timecreated": '"$((timeStamp + i))"', "intent": "BUY", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}]}' http://localhost:8001/ &
       echo "  " $i " Bid " $price
 
     elif [[ $[i % 5] == 0 ]]; then
       price=$((price - 5))
-      curl -H "Content-Type: application/json" -X POST -d '{"orders": [{"ask": '"$price"', "actor": "Tim", "timecreated": '"$((12412132 + i))"', "intent": "SELL", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}]}' http://localhost:8001/
+      curl -H "Content-Type: application/json" -X POST -d '{"orders": [{"ask": '"$price"', "actor": "Tim", "timecreated": '"$((timeStamp + i))"', "intent": "SELL", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}]}' http://localhost:8001/ &
       echo "  " $i " Ask " $price
 
     elif [[ $[i % 3] == 0 ]]; then
       price=$((price - 1))
-      curl -H "Content-Type: application/json" -X POST -d '{"orders": [{"bid": '"$price"', "actor": "Bob", "timecreated": '"$((12412132 + i))"', "intent": "BUY", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}]}' http://localhost:8001/
+      curl -H "Content-Type: application/json" -X POST -d '{"orders": [{"bid": '"$price"', "actor": "Bob", "timecreated": '"$((timeStamp + i))"', "intent": "BUY", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}]}' http://localhost:8001/ &
       echo "  " $i " Bid " $price
 
     else 
       price=$((price + 1))
-      curl -H "Content-Type: application/json" -X POST -d '{"orders": [{"ask": '"$price"', "actor": "Tim", "timecreated": '"$((12412132 + i))"', "intent": "SELL", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}]}' http://localhost:8001/
+      curl -H "Content-Type: application/json" -X POST -d '{"orders": [{"ask": '"$price"', "actor": "Tim", "timecreated": '"$((timeStamp + i))"', "intent": "SELL", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}]}' http://localhost:8001/ &
       echo "  " $i " Ask " $price
 
     fi 
