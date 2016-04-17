@@ -34,11 +34,13 @@ func TestMinuteHash(t *testing.T) {
                 Shares: 30, Ticker: "STOCK", Price: 10.55,
             })
 
-            g.Assert(minuteHash.hash["STOCK"]).Equal(&Minute{
-                High: 11.5, Low: 9.5, 
-                Open: 10.5, Close: 10.55, 
-                Volume: 270, Ticker: "STOCK",
-            })
+            // cant mock the time, so we'll test each property that isnt time
+            g.Assert(minuteHash.hash["STOCK"].High).Equal(11.5)
+            g.Assert(minuteHash.hash["STOCK"].Low).Equal(9.5)
+            g.Assert(minuteHash.hash["STOCK"].Open).Equal(10.5)
+            g.Assert(minuteHash.hash["STOCK"].Close).Equal(10.55)
+            g.Assert(minuteHash.hash["STOCK"].Volume).Equal(270)
+            g.Assert(minuteHash.hash["STOCK"].Ticker).Equal("STOCK")   
 		})
 	})
 }
