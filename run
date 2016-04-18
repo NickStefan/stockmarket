@@ -10,7 +10,7 @@ if [[ $1 == "local" ]]; then
     cd $service && go install && cd ..
   done
 
-  mongod &
+  mongod > /dev/null &
 
   for service in $services; do
     $GOPATH/bin/$service &

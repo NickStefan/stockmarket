@@ -96,7 +96,6 @@ func main() {
             fmt.Println("ERR: TICKER_SERVICE")
             panic(err)
         }
-        fmt.Println("TRADE ", payload[0].Price, payload[0].Time)
         minuteHash.add(payload[0])
 
         w.WriteHeader(http.StatusOK)

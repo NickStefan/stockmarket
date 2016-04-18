@@ -1,12 +1,12 @@
 package main
 
 import (
-	// "time"
 	"github.com/nickstefan/market/orderbook_service/heap"
 	"bytes"
 	"encoding/json"
 	"net/http"
 	"fmt"
+	"sync"
 )
 
 // how does a stock market organize the orders? Depth of Market or OrderBook
@@ -37,7 +37,6 @@ func (o *OrderBook) setTradeHandler(execTrade tradehandler) {
 }
 
 func (o *OrderBook) add(order *Order) {
-
 	if order.Intent == "BUY" {
 		o.buyHash.set(order.lookup(), order)
 		o.buyQueue.Enqueue(&heap.Node{
@@ -131,8 +130,10 @@ func main() {
 	tickerUrl := "http://127.0.0.1:8003/"
 	
 	orderBook := NewOrderBook()
+	var mutex sync.Mutex
 
 	orderBook.setTradeHandler(func (t Trade, o Trade) {
+		// fmt.Println("\n TRADE", t.Price, "\n")
 		trade, err := json.Marshal([2]Trade{t,o})
 		if err != nil {
 			panic(err)
@@ -157,19 +158,24 @@ func main() {
 		}
 
 		decoder := json.NewDecoder(r.Body)
+		defer r.Body.Close()
 		err := decoder.Decode(&payload)
 		if err != nil {
 			fmt.Println("ERR: ORDERBOOK_SERVICE")
 			panic(err)
 		}
 
+		mutex.Lock()
+		defer mutex.Unlock()
 		for _, order := range payload.Orders {
+			// fmt.Println(order.Intent, "ORDER", order.price())
 			orderBook.add(order)
 		}
 		orderBook.run()
-
+		
 		w.WriteHeader(http.StatusOK)
     w.Write([]byte("Status 200"))
 	})
+
 	http.ListenAndServe(":8001", nil)
 }
