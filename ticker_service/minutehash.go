@@ -4,6 +4,7 @@ import (
     // "fmt"
     "gopkg.in/mgo.v2"
     "time"
+    "sync"
 )
 
 type Minute struct {
@@ -19,6 +20,7 @@ type Minute struct {
 type MinuteHash struct {
     hash map[string]*Minute
     db *mgo.Database
+    sync.RWMutex
 }
 
 func NewMinuteHash(tickers []string) *MinuteHash {
@@ -38,6 +40,9 @@ func (m *MinuteHash) setDB(db *mgo.Database) {
 }
 
 func (m *MinuteHash) add(t Trade) {
+    m.Lock()
+    defer m.Unlock()
+
     minute := m.hash[t.Ticker]
     
     if minute.Volume == 0 {
@@ -61,6 +66,9 @@ func (m *MinuteHash) add(t Trade) {
 }
 
 func (m *MinuteHash) persistAndPublish(){
+    m.RLock()
+    defer m.RUnlock()
+
     minutes := make([]interface{}, 0)
 
     for ticker, tickMinute := range m.hash {

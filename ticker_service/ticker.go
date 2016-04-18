@@ -91,11 +91,13 @@ func main() {
     http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request){
         var payload [2]Trade
         decoder := json.NewDecoder(r.Body)
+        defer r.Body.Close()
         err := decoder.Decode(&payload)
         if err != nil {
             fmt.Println("ERR: TICKER_SERVICE")
             panic(err)
         }
+        
         minuteHash.add(payload[0])
 
         w.WriteHeader(http.StatusOK)

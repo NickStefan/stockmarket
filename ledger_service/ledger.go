@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 )
 
 type Trade struct {
@@ -72,18 +73,23 @@ func processTrade(data map[string]*Ledger, t Trade, o Trade) {
 }
 
 func main() {
-
+	var mutex sync.Mutex
 	dataStore := make(map[string]*Ledger)
 
 	http.HandleFunc("/fill", func(w http.ResponseWriter, r *http.Request) {
 		var payload [2]Trade
 		decoder := json.NewDecoder(r.Body)
+		defer r.Body.Close()
 		err := decoder.Decode(&payload)
 		if err != nil {
 			fmt.Println("ERR: LEDGER_SERVICE")
 			panic(err)
 		}
+
+		mutex.Lock()
+		defer mutex.Unlock()
 		processTrade(dataStore, payload[0], payload[1])
+
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))
 	})

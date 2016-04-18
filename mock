@@ -10,7 +10,7 @@ function trade {
   price=$((10))
   timeStamp=$(date +%s)
 
-  for i in {1..300}; do
+  for i in {1..250}; do
     # sleep 1
 
     if [[ $[i % 5] == 0 && $[i % 3] == 0 ]]; then
