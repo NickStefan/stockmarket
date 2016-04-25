@@ -5,13 +5,29 @@
         <link rel="stylesheet" href="chart.css" />        
     </head>
     <body>
-        <script src="http://d3js.org/d3.v3.min.js"></script>
-        <script src="http://techanjs.org/techan.min.js"></script>
+        <script src="http://d3js.org/d3.v3.js"></script>
+        <script src="http://techanjs.org/techan.js"></script>
         <script src="data.js"></script>
         <script src="chart.js"></script>
         <script>
-            var chart = new Chart({data: window.data});
+            var data = window.data.splice(0, 10);
+            var chart = new Chart();
+            chart.addData({data: data});
             chart.draw();
+            <!--fakeChannel();-->
+
+            function fakeChannel(){
+                setTimeout(function() {
+                    if (window.data.length){
+                        chart.addData({data: [window.data.shift()]})
+                    } else {
+                        chart.addData({});
+                    }
+                    chart.draw();
+                    fakeChannel();
+                }, (Math.random()*1000)+400);
+            }
+
         </script>
     </body>
 </html>

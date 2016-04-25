@@ -10,12 +10,12 @@ function trade {
   price=$((10))
   timeStamp=$(date +%s)
 
-  for i in {1..250}; do
+  for i in {1..5000}; do
     # sleep 1
 
     if [[ $[i % 5] == 0 && $[i % 3] == 0 ]]; then
       price=$((price + 10))
-      curl -s -H "Content-Type: application/json" -X POST -d '{"orders": [{"bid": '"$price"', "actor": "Bob", "timecreated": '"$((timeStamp))"''"$((i))"', "intent": "BUY", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}]}' http://localhost:8001/ > /dev/null &
+      curl -s -H "Content-Type: application/json" -X POST -d '{"orders": [{"ask": '"$price"', "actor": "Bob", "timecreated": '"$((timeStamp))"''"$((i))"', "intent": "SELL", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}]}' http://localhost:8001/ > /dev/null &
       # echo "  " $i " Bid " $price
 
     elif [[ $[i % 5] == 0 ]]; then
@@ -25,7 +25,7 @@ function trade {
 
     elif [[ $[i % 3] == 0 ]]; then
       price=$((price - 1))
-      curl -s -H "Content-Type: application/json" -X POST -d '{"orders": [{"bid": '"$price"', "actor": "Bob", "timecreated": '"$((timeStamp))"''"$((i))"', "intent": "BUY", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}]}' http://localhost:8001/ > /dev/null &
+      curl -s -H "Content-Type: application/json" -X POST -d '{"orders": [{"ask": '"$price"', "actor": "Bob", "timecreated": '"$((timeStamp))"''"$((i))"', "intent": "SELL", "shares": 100, "state": "OPEN", "ticker": "STOCK", "kind": "LIMIT"}]}' http://localhost:8001/ > /dev/null &
       # echo "  " $i " Bid " $price
 
     else 

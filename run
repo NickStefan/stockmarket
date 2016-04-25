@@ -18,6 +18,7 @@ if [[ $1 == "local" ]]; then
 
   # wait for the db to set up after dropping the previous one
   sleep 15
+  echo "ready"
   time trade
 fi
 

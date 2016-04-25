@@ -1,10 +1,14 @@
 
 function Chart(options){
-    var data = options.data;
+    //var data = options.data;
+
     var margin = {top: 20, right: 20, bottom: 30, left: 50};
     var width = 960 - margin.left - margin.right;
     var height = 500 - margin.top - margin.bottom;
-    
+    this.width = width;
+    this.height = height;
+
+    this.count = 20;
 
     this.x = techan.scale.financetime().range([0, width]);
     this.y = d3.scale.linear().range([height, 0]);
@@ -57,15 +61,7 @@ function Chart(options){
 
     this.svg = this.svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    var ohlcSelection = this.svg.append("g").attr("class", "ohlc").attr("transform", "translate(0,0)");
-
-    ohlcSelection.append("g").attr("class", "volume").attr("clip-path", "url(#ohlcClip)");
-
-    ohlcSelection.append("g").attr("class", "candlestick").attr("clip-path", "url(#ohlcClip)");
-
-    ohlcSelection.append("g").attr("class", "indicator sma ma-0").attr("clip-path", "url(#ohlcClip)");
-
-    ohlcSelection.append("g").attr("class", "indicator sma ma-1").attr("clip-path", "url(#ohlcClip)");
+    this.createCandleSelection();
 
     this.svg.append("g").attr("class", "x axis").attr("transform", "translate(0," + height + ")");
 
@@ -82,27 +78,7 @@ function Chart(options){
 
     this.svg.append('g').attr("class", "crosshair ohlc");
 
-    this.feed = data.map(function(d) {
-        return {
-            date: new Date(d.time * 1000),
-            open: +d.open,
-            high: +d.high,
-            low: +d.low,
-            close: +d.close,
-            volume: +d.volume
-        };
-    }).sort(function(a, b) { 
-        return d3.ascending(this.accessor.d(a), this.accessor.d(b)); 
-    }.bind(this));
-
-    // The removed becomes the initial data, the remaining becomes the feed
-    this.data = this.feed.splice(0, 163);
-
-    this.svg.select("g.candlestick").datum(this.data);
-    this.svg.select("g.sma.ma-0").datum(this.sma0Calculator(this.data));
-    this.svg.select("g.sma.ma-1").datum(this.sma1Calculator(this.data));
-    this.svg.select("g.volume").datum(this.data);
-}
+};
 
 function refreshIndicator(selection, indicator, data) {
     var datum = selection.datum();
@@ -112,42 +88,112 @@ function refreshIndicator(selection, indicator, data) {
     selection.call(indicator);
 }
 
-Chart.prototype.draw = function(){
-    this.x.domain(this.data.map(this.accessor.d));
+Chart.prototype.createCandleSelection = function(){
+    this.candleSelection = this.svg.append("g").attr("class", "ohlc").attr("transform", "translate(0,0)");
+    this.candleSelection.append("g").attr("class", "volume").attr("clip-path", "url(#ohlcClip)");
+    this.candleSelection.append("g").attr("class", "candlestick").attr("clip-path", "url(#ohlcClip)");
+    this.candleSelection.append("g").attr("class", "indicator sma ma-0").attr("clip-path", "url(#ohlcClip)");
+    this.candleSelection.append("g").attr("class", "indicator sma ma-1").attr("clip-path", "url(#ohlcClip)");
+};
+
+Chart.prototype.mapData = function(d){
+    return {
+        date: new Date(d.time * 1000),
+        open: +d.open,
+        high: +d.high,
+        low: +d.low,
+        close: +d.close,
+        volume: +d.volume
+    };
+};
+
+Chart.prototype.addData = function (options){
+    this.data = this.data || [];
+    if (options !== undefined && options.data){
+        this.data.push.apply(this.data, options.data.map(this.mapData));
+    } else if (options !== undefined && !options.data) {
+        // Simulate intra day updates when no feed is left
+        var last = this.data[this.data.length-1];
+        // Last must be between high and low
+        last.close = Math.round(((last.high - last.low)*Math.random())*10)/10+last.low;
+    }
+};
+
+Chart.prototype.createMinimumCount = function(){
+    this.data = this.data || [];
+    this.presentationData = this.data.slice();
+
+    var lastDate;
+    if (this.data.length){
+        lastDate = this.data[ this.data.length - 1].date.getTime();
+    } else {
+        lastDate = (new Date()).getTime();
+    }
+
+    while (this.presentationData.length < this.count){
+        lastDate = lastDate + 6000;
+        this.presentationData.push({
+            date: lastDate,
+            open: 0,
+            high: 0,
+            low: 0,
+            close: 0,
+            volume: 0
+        });
+    }
+};
+
+Chart.prototype.draw = function(options){
+
+    this.createMinimumCount();
+
+    //this.presentationData = this.presentationData
+    //.map(this.mapData)
+    //.sort(function(a, b) {
+        //return d3.ascending(this.accessor.d(a), this.accessor.d(b));
+    //}.bind(this));
+
+    //this.svg.select("g.candlestick").data(this.presentationData);
+    //this.svg.select("g.sma.ma-0").datum(this.sma0Calculator(this.presentationData));
+    //this.svg.select("g.sma.ma-1").datum(this.sma1Calculator(this.presentationData));
+    //this.svg.select("g.volume").datum(this.presentationData);
+
+    this.svg.selectAll("g.ohlc").remove()
+
+    this.x = techan.scale.financetime().range([0, this.width]);
+    this.y = d3.scale.linear().range([this.height, 0]);
+    this.candlestick = techan.plot.candlestick().xScale(this.x).yScale(this.y);
+    this.accessor = this.candlestick.accessor();
+
+    this.x.domain(this.presentationData.map(this.accessor.d));
+
     // Show only 150 points on the plot
-    this.x.zoomable().domain([this.data.length-130, this.data.length]);
+    // this.x.zoomable().domain([this.presentationData.length-130, this.presentationData.length]);
+    //this.x.zoomable().domain([0, this.presentationData.length]);
 
     // Update y scale min max, only on viewable zoomable.domain()
-    this.y.domain(techan.scale.plot.ohlc(this.data.slice(this.data.length-130, this.data.length)).domain());
-    this.yVolume.domain(techan.scale.plot.volume(data.slice(this.data.length-130, this.data.length)).domain());
+    // this.y.domain(techan.scale.plot.ohlc(this.presentationData.slice(this.presentationData.length-130, this.presentationData.length)).domain());
+    this.y.domain(techan.scale.plot.ohlc(this.presentationData.slice(0, this.presentationData.length)).domain());
+    // this.yVolume.domain(techan.scale.plot.volume(this.presentationData.slice(this.presentationData.length-130, this.presentationData.length)).domain());
+    //this.yVolume.domain(techan.scale.plot.volume(this.presentationData.slice(0, this.presentationData.length)).domain());
 
     this.svg.select('g.x.axis').call(this.xAxis);
     this.svg.select('g.y.axis').call(this.yAxis);
     this.svg.select("g.volume.axis").call(this.volumeAxis);
 
+    this.createCandleSelection();
+    this.svg.select("g.candlestick").data(this.presentationData);
     this.svg.select("g.candlestick").call(this.candlestick);
 
+    // this.svg.select("g.candlestick").call(this.candlestick);
+
     // Recalculate indicators and update the SAME array and redraw moving average
-    refreshIndicator(this.svg.select("g.sma.ma-0"), this.sma0, this.sma0Calculator(this.data));
-    refreshIndicator(this.svg.select("g.sma.ma-1"), this.sma1, this.sma1Calculator(this.data));
+    // refreshIndicator(this.svg.select("g.sma.ma-0"), this.sma0, this.sma0Calculator(this.presentationData));
+    // refreshIndicator(this.svg.select("g.sma.ma-1"), this.sma1, this.sma1Calculator(this.presentationData));
 
-    this.svg.select("g.volume").call(this.volume);
+    // this.svg.select("g.volume").call(this.volume);
+    //this.svg.selectAll("g.volume").remove();
+    //this.svg.select("g.volume").datum(this.presentationData);
 
-    this.svg.select("g.crosshair.ohlc").call(this.crosshair);
-
-    // Set next timer expiry
-    setTimeout(function() {
-        if(this.feed.length) {
-            // Simulate a daily feed
-            this.data.push(this.feed.shift());
-        }
-        else {
-            // Simulate intra day updates when no feed is left
-            var last = this.data[this.data.length-1];
-            // Last must be between high and low
-            last.close = Math.round(((last.high - last.low)*Math.random())*10)/10+last.low;
-        }
-
-        this.draw();
-    }.bind(this), (Math.random()*1000)+400); // Randomly pick an interval to update the chart
+    //this.svg.select("g.crosshair.ohlc").call(this.crosshair);
 }
