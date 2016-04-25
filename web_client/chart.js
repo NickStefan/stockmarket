@@ -1,5 +1,31 @@
-var stream = fc.data.random.financial().stream();
-window._data = stream.take(110);
+window._data = fc.data.random.financial().stream().take(200);
+
+var dte = new Date().getTime();
+for (var i = 0; i < window._data.length; i++){
+    window._data[i].date = new Date(dte + (i * 1000 * 60))
+}
+
+var _stream = window._data.splice(20, 180);
+var stream = new Stream(_stream);
+//window._data = stream.take(110);
+
+//window._data = window._data.map(mapData);
+
+function Stream(_stream){
+    this.stream = _stream; //.map(mapData);
+    this.length = this.stream.length;
+}
+
+function mapData (d){
+    d.date = (new Date(d.time));
+    delete d.time;
+    return d;
+}
+
+Stream.prototype.next = function(){
+    this.length--;
+    return this.stream.shift();
+}
 
 function renderChart(data) {
 
@@ -12,7 +38,7 @@ function renderChart(data) {
     bollingerAlgorithm(data);
 
     // Offset the range to include the full bar for the latest value
-    var DAY_MS = 1000 * 60 * 60 * 24;
+    var DAY_MS = 1000 * 60// * 60 * 24;
     var xExtent = fc.util.extent()
         .fields(["date"])
         .padUnit("domain")
@@ -40,9 +66,9 @@ function renderChart(data) {
     var yTicks = chart.yScaleTicks(10);
 
     // render a reduced number of ticks on each axis
-    chart
-        .xTickValues(xTicks.filter(function(d) { return d.getDate() % 2 === 0; }))
-        .yTickValues(yTicks.filter(function(d, i) { return i % 2 === 0; }));
+    //chart
+        //.xTickValues(xTicks.filter(function(d) { return d.getDate() % 2 === 0; }))
+        //.yTickValues(yTicks.filter(function(d, i) { return i % 2 === 0; }));
 
     // Create the gridlines and series
     var gridlines = fc.annotation.gridline()
@@ -66,5 +92,8 @@ renderChart(stream.next());
 renderChart(stream.next());
 
 setInterval(function(){
-    renderChart(stream.next());
-}, 1000);
+    //debugger;
+    if (stream.length !== 0){
+        renderChart(stream.next());
+    }
+}, 5000);
