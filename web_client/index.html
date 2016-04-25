@@ -2,19 +2,19 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <link rel="stylesheet" href="chart.css" />        
+        <link rel="stylesheet" href="chart.css" />
+        <link rel="stylesheet" href="https://d3fc.io/d3fc.css"/>
     </head>
     <body>
-        <script src="http://d3js.org/d3.v3.js"></script>
-        <script src="http://techanjs.org/techan.js"></script>
+        <script src="https://d3fc.io/d3fc.bundle.js"></script>
         <script src="data.js"></script>
         <script src="chart.js"></script>
         <script>
-            var data = window.data.splice(0, 10);
+            /* var data = window.data.splice(0, 10);
             var chart = new Chart();
             chart.addData({data: data});
             chart.draw();
-            <!--fakeChannel();-->
+            fakeChannel();
 
             function fakeChannel(){
                 setTimeout(function() {
@@ -26,8 +26,9 @@
                     chart.draw();
                     fakeChannel();
                 }, (Math.random()*1000)+400);
-            }
+            }*/
 
         </script>
+        <div id="streaming-chart" class="chart large"></div>
     </body>
 </html>

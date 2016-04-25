@@ -1,4 +1,4 @@
-window.data = [
+window.___data = [
     {
         "high" : 11,
         "low" : 2,
