@@ -5,7 +5,7 @@ for (var i = 0; i < window._data.length; i++){
     window._data[i].date = new Date(dte + (i * 1000 * 60))
 }
 
-var _stream = window._data.splice(20, 180);
+var _stream = window._data.splice(40, 160);
 var stream = new Stream(_stream);
 //window._data = stream.take(110);
 
@@ -28,9 +28,10 @@ Stream.prototype.next = function(){
 }
 
 function renderChart(data) {
-
+    if (data){
     window._data.push(data);
     window._data.shift();
+    }
     var data = window._data;
 
     // compute the bollinger bands
