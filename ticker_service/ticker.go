@@ -50,10 +50,13 @@ func main() {
 	defer session.Close()
 
 	tickers := []string{"STOCK"}
-	periodHash := NewPeriodHash(tickers)
-	periodHash.setDB(session.DB("tickerdb"))
 
-	schedule(periodHash.persistAndPublish, 60)
+	minuteHash := NewPeriodHash(tickers)
+	minuteHash.setDB(session.DB("tickerdb"))
+	schedule(minuteHash.Persist, 60)
+
+	secondHash := NewPeriodHash(tickers)
+	schedule(secondHash.Publish, 1)
 
 	// {
 	//       timestamp_hour: ISODate("2013-10-10T23:00:00.000Z"),
@@ -98,7 +101,8 @@ func main() {
 			panic(err)
 		}
 
-		periodHash.add(payload[0])
+		minuteHash.add(payload[0])
+		secondHash.add(payload[0])
 
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))

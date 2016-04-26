@@ -65,7 +65,7 @@ func (m *PeriodHash) add(t Trade) {
 	period.Close = t.Price
 }
 
-func (m *PeriodHash) persistAndPublish() {
+func (m *PeriodHash) Persist() {
 	m.RLock()
 	defer m.RUnlock()
 
@@ -73,12 +73,22 @@ func (m *PeriodHash) persistAndPublish() {
 
 	for ticker, tickPeriod := range m.hash {
 		periods = append(periods, tickPeriod)
-		m.publish(tickPeriod)
 		// reset hash
 		m.hash[ticker] = &Period{Ticker: ticker}
 	}
 
 	m.persist(periods)
+}
+
+func (m *PeriodHash) Publish() {
+	m.RLock()
+	defer m.RUnlock()
+
+	for ticker, tickPeriod := range m.hash {
+		m.publish(tickPeriod)
+		// reset hash
+		m.hash[ticker] = &Period{Ticker: ticker}
+	}
 }
 
 func (m *PeriodHash) publish(tickPeriod *Period) {
