@@ -1,49 +1,52 @@
-window._data = fc.data.random.financial().stream().take(200);
-
-var dte = new Date().getTime();
-for (var i = 0; i < window._data.length; i++){
-    window._data[i].date = new Date(dte + (i * 1000 * 60))
+function Chart(options){
+    options = options || {};
+    this._data = options.data;
+    this.selector = options.selector;
+    this.label = options.label;
+    this.periodMs = options.periodMs;
 }
 
-var _stream = window._data.splice(40, 160);
-var stream = new Stream(_stream);
-//window._data = stream.take(110);
-
-//window._data = window._data.map(mapData);
-
-function Stream(_stream){
-    this.stream = _stream; //.map(mapData);
-    this.length = this.stream.length;
+Chart.prototype.addData = function(data){
+    this._data.push(data);
+    this._data.shift();
 }
 
-function mapData (d){
-    d.date = (new Date(d.time));
-    delete d.time;
-    return d;
-}
+// will need to setInterval,
+// where on periodMs, add new whole node to end of this._data stack
+// in between that interval, call this method to update in place ticks
+Chart.prototype.addPartialData = function(data){
+    var last = this._data[ this._data.length - 1];
 
-Stream.prototype.next = function(){
-    this.length--;
-    return this.stream.shift();
-}
-
-function renderChart(data) {
-    if (data){
-    window._data.push(data);
-    window._data.shift();
+    if (last.volume === 0){
+        last.high = data.price;
+        last.low = data.price;
+        last.open = data.price;
+        last.close = data.price;
     }
-    var data = window._data;
+
+    if (last.low > data.price){
+        last.low = data.price;
+    }
+
+    if (last.high < data.price){
+        last.high = data.price;
+    }
+
+    last.close = data.price;
+    last.volume = last.volume + data.shares;
+}
+
+Chart.prototype.draw = function(){
 
     // compute the bollinger bands
     var bollingerAlgorithm = fc.indicator.algorithm.bollingerBands();
-    bollingerAlgorithm(data);
+    bollingerAlgorithm(this._data);
 
     // Offset the range to include the full bar for the latest value
-    var DAY_MS = 1000 * 60// * 60 * 24;
     var xExtent = fc.util.extent()
         .fields(["date"])
         .padUnit("domain")
-        .pad([DAY_MS * -bollingerAlgorithm.windowSize()(data), DAY_MS]);
+        .pad([this.periodMs * -bollingerAlgorithm.windowSize()(this._data), this.periodMs]);
 
     // ensure y extent includes the bollinger bands
     var yExtent = fc.util.extent().fields([
@@ -56,10 +59,10 @@ function renderChart(data) {
             fc.scale.dateTime(),
             d3.scale.linear()
         )
-        .xDomain(xExtent(data))
-        .yDomain(yExtent(data))
+        .xDomain(xExtent(this._data))
+        .yDomain(yExtent(this._data))
         .yNice()
-        .chartLabel("Streaming Candlestick")
+        .chartLabel(this.label)
         .margin({left: 30, right: 30, bottom: 20, top: 30});
 
     // obtain ticks from the underlying scales
@@ -84,15 +87,7 @@ function renderChart(data) {
 
     chart.plotArea(multi);
 
-    d3.select("#streaming-chart")
-        .datum(data)
+    d3.select(this.selector)
+        .datum(this._data)
         .call(chart);
-}
-
-renderChart(stream.next());
-
-setInterval(function(){
-    if (stream.length !== 0){
-        renderChart(stream.next());
-    }
-}, 1000);
+};

@@ -11,23 +11,21 @@
         <script src="data.js"></script>
         <script src="chart.js"></script>
         <script>
-            /* var data = window.data.splice(0, 10);
-            var chart = new Chart();
-            chart.addData({data: data});
-            chart.draw();
-            fakeChannel();
+            var chart = new Chart({
+                data: window._data,
+                selector: "#streaming-chart",
+                label: "STOCK chart",
+                periodMs: 1000 * 60// * 60 * 24;
+            });
 
-            function fakeChannel(){
-                setTimeout(function() {
-                    if (window.data.length){
-                        chart.addData({data: [window.data.shift()]})
-                    } else {
-                        chart.addData({});
-                    }
+            chart.draw();
+
+            setInterval(function(){
+                if (stream.length !== 0){
+                    chart.addData(stream.next());
                     chart.draw();
-                    fakeChannel();
-                }, (Math.random()*1000)+400);
-            }*/
+                }
+            }, 1000);
 
         </script>
     </body>
