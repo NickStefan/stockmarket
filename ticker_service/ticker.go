@@ -56,6 +56,7 @@ func main() {
 	schedule(minuteHash.Persist, 60)
 
 	secondHash := NewPeriodHash(tickers)
+	secondHash.setChannel()
 	schedule(secondHash.Publish, 1)
 
 	// {

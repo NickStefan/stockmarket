@@ -17,17 +17,16 @@ _now in golang!_
 
 - [ ] ticker service (chart and quote stream)  
   - [x] on price data http, update minute high, low, open, close, vol information  
-  - [x] every 60 seconds, persist tick data to DB  
-  - [ ] on price data, publish price to "QUOTE" channel; rate limit 1 / second  
-  - [ ] every 60 seconds, publish tick data to "CHART" channel  
+  - [x] every 60 seconds, persist 1minute period tick data to DB  
+  - [ ] every 1 second, publish 1second period tick data to websockets
 
 - [ ] web service  
   - [ ] serve front end javascript  
   - [ ] handle accounts and authentication  
 
 - [ ] web client (front end)  
-  - [ ] graph "CHART" data into a stock chart  
-  - [ ] listen to "QUOTE" and "CHART" channels  
+  - [x] graph "CHART" data into a stock chart  
+  - [ ] listen to "TICKER" channels  
   - [ ] append new data to chart  
   - [ ] display account info  
   - [ ] place orders  

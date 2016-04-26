@@ -39,6 +39,10 @@ func (m *PeriodHash) setDB(db *mgo.Database) {
 	m.db = db
 }
 
+func (m *PeriodHash) setChannel() {
+
+}
+
 func (m *PeriodHash) add(t Trade) {
 	m.Lock()
 	defer m.Unlock()
