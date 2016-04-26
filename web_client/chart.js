@@ -90,11 +90,9 @@ function renderChart(data) {
 }
 
 renderChart(stream.next());
-renderChart(stream.next());
 
 setInterval(function(){
-    //debugger;
     if (stream.length !== 0){
         renderChart(stream.next());
     }
-}, 5000);
+}, 1000);
