@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"gopkg.in/mgo.v2"
@@ -41,13 +42,28 @@ func schedule(f func(), delaySeconds time.Duration) chan struct{} {
 }
 
 func main() {
+	messageUrl := "http://127.0.0.1:8004/msg"
 	url := "mongodb://localhost"
+
 	session, err := mgo.Dial(url)
 	err = session.DB("tickerdb").DropDatabase()
 	if err != nil {
 		panic(err)
 	}
 	defer session.Close()
+
+	publisher := func(tickPeriod *Period) {
+		tick, err := json.Marshal(tickPeriod)
+		if err != nil {
+			panic(err)
+		}
+
+		messageResp, err := http.Post(messageUrl, "application/json", bytes.NewBuffer(tick))
+		if err != nil {
+			panic(err)
+		}
+		defer messageResp.Body.Close()
+	}
 
 	tickers := []string{"STOCK"}
 
@@ -56,7 +72,7 @@ func main() {
 	schedule(minuteHash.Persist, 60)
 
 	secondHash := NewPeriodHash(tickers)
-	secondHash.setChannel()
+	secondHash.setPublisher(publisher)
 	schedule(secondHash.Publish, 1)
 
 	// {

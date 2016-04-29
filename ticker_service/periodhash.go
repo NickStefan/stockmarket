@@ -18,8 +18,9 @@ type Period struct {
 }
 
 type PeriodHash struct {
-	hash map[string]*Period
-	db   *mgo.Database
+	hash      map[string]*Period
+	db        *mgo.Database
+	publisher func(*Period)
 	sync.RWMutex
 }
 
@@ -39,8 +40,8 @@ func (m *PeriodHash) setDB(db *mgo.Database) {
 	m.db = db
 }
 
-func (m *PeriodHash) setChannel() {
-
+func (m *PeriodHash) setPublisher(p func(*Period)) {
+	m.publisher = p
 }
 
 func (m *PeriodHash) add(t Trade) {
@@ -84,6 +85,15 @@ func (m *PeriodHash) Persist() {
 	m.persist(periods)
 }
 
+func (m *PeriodHash) persist(l []interface{}) {
+	// put it all into mongodb
+	c := m.db.C("ticks")
+	err := c.Insert(l...)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (m *PeriodHash) Publish() {
 	m.RLock()
 	defer m.RUnlock()
@@ -96,14 +106,5 @@ func (m *PeriodHash) Publish() {
 }
 
 func (m *PeriodHash) publish(tickPeriod *Period) {
-	// fmt.Println("TICKER_SERVICE: ", tickPeriod)
-}
-
-func (m *PeriodHash) persist(l []interface{}) {
-	// put it all into mongodb
-	c := m.db.C("ticks")
-	err := c.Insert(l...)
-	if err != nil {
-		panic(err)
-	}
+	m.publisher(tickPeriod)
 }
