@@ -19,14 +19,27 @@
             });
 
             chart.draw();
+            
+            if (window.WebSocket){
+                socket = new WebSocket("ws://localhost:8004/ws");
 
+                socket.onmessage = function(e){
+                    console.log(e.data);
+                };
+
+                socket.onclose = function(e){
+                    console.log("connection closed");
+                };
+            }
+            
+            /*
             setInterval(function(){
                 if (stream.length !== 0){
                     chart.addData(stream.next());
                     chart.draw();
                 }
             }, 1000);
-
+            */
         </script>
     </body>
 </html>
