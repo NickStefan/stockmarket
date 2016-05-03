@@ -33,6 +33,8 @@
 
                 socket.onmessage = function(e){
                     console.log(e.data);
+                    chart.addPartialData(JSON.parse(e.data));
+                    chart.draw();
                 };
 
                 socket.onclose = function(e){

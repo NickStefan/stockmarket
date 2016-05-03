@@ -42,7 +42,7 @@ func schedule(f func(), delaySeconds time.Duration) chan struct{} {
 }
 
 func main() {
-	messageUrl := "http://127.0.0.1:8004/msg"
+	messageUrl := "http://127.0.0.1:8004/msg/ticker"
 	url := "mongodb://localhost"
 
 	session, err := mgo.Dial(url)

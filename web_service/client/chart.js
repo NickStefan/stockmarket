@@ -18,22 +18,22 @@ Chart.prototype.addPartialData = function(data){
     var last = this._data[ this._data.length - 1];
 
     if (last.volume === 0){
-        last.high = data.price;
-        last.low = data.price;
-        last.open = data.price;
-        last.close = data.price;
+        last.high = data.high;
+        last.low = data.low;
+        last.open = data.open;
+        last.close = data.close;
     }
 
-    if (last.low > data.price){
-        last.low = data.price;
+    if (last.low > data.low){
+        last.low = data.low;
     }
 
-    if (last.high < data.price){
-        last.high = data.price;
+    if (last.high < data.high){
+        last.high = data.high;
     }
 
-    last.close = data.price;
-    last.volume = last.volume + data.shares;
+    last.close = data.close;
+    last.volume = last.volume + data.volume;
 }
 
 Chart.prototype.draw = function(){
@@ -51,7 +51,7 @@ Chart.prototype.draw = function(){
     // ensure y extent includes the bollinger bands
     var yExtent = fc.util.extent().fields([
         function(d) { return d.bollingerBands.upper; },
-        function(d) { return d.bollingerBands.lower; }
+        function(d) { return 0; }// return d.bollingerBands.lower; }
     ]);
 
     // create a chart

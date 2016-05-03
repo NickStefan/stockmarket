@@ -7,10 +7,16 @@ module.exports = function(app){
     app.hub = hub;      
     
     // receive messages intended for connected clients
-    app.post('/msg', function(req, res){
+    app.post('/msg/ticker', function(req, res){
         app.hub.sendByTicker(req.body.ticker, req.body);
         res.sendStatus(200);
     });
+
+    app.post('/msg/user', function(req, res){
+        app.hub.sendByUser(req.body.user_id, req.body);
+        res.sendStatus(200);
+    });
+
 
     // receive client connections
     app.ws('/ws', function(client, req) {
@@ -90,5 +96,5 @@ Hub.prototype.pingPong = function(client){
     client.on("pong", function() { 
         client.pingssent = 0; 
     });
-}
+};
 
