@@ -12,6 +12,8 @@ if [[ $1 == "local" ]]; then
 
   mongod > /dev/null &
 
+  node ./web_service/server/app.js &
+
   for service in $services; do
     $GOPATH/bin/$service &
   done
@@ -42,6 +44,8 @@ if [[ $1 == "list" ]]; then
 
   ps aux | grep mongod | grep -v grep
 
+  ps aux | grep web_service | grep -v grep
+
   for service in $services; do
     ps aux | grep $service | grep -v grep
   done
@@ -60,6 +64,8 @@ fi
 if [[ $1 == "kill" ]]; then
 
   pkill -x mongod
+
+  pkill -x web_service
 
   for service in $services; do
     pkill -x $service

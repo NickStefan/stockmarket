@@ -2,14 +2,14 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <link rel="stylesheet" href="chart.css" />
+        <link rel="stylesheet" href="assets/chart.css" />
         <link rel="stylesheet" href="https://d3fc.io/d3fc.css"/>
     </head>
     <body>
         <div id="streaming-chart" class="chart large"></div>
         <script src="https://d3fc.io/d3fc.bundle.js"></script>
-        <script src="data.js"></script>
-        <script src="chart.js"></script>
+        <script src="assets/data.js"></script>
+        <script src="assets/chart.js"></script>
         <script>
             var chart = new Chart({
                 data: window._data,
@@ -22,6 +22,14 @@
             
             if (window.WebSocket){
                 socket = new WebSocket("ws://localhost:8004/ws");
+
+                socket.onopen = function(e){
+                    var msg = JSON.stringify({
+                        user_id: 'userNick',
+                        tickers: ['STOCK']
+                    });
+                    socket.send(msg);
+                };
 
                 socket.onmessage = function(e){
                     console.log(e.data);
