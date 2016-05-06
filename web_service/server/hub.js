@@ -1,4 +1,5 @@
-module.exports.Hub = function Hub(){
+
+function Hub(){
     this.clientsByUserId = {};
     this.clientsByTicker = {};
 }
@@ -31,7 +32,9 @@ Hub.prototype.sendByUser = function(user_id, msg){
     if (!client){
         return;
     }
-    client.send(JSON.stringify(msg));
+    client.send(JSON.stringify(msg), function(err){
+        if (err) client.close();
+    });
 };
 
 Hub.prototype.sendByTicker = function(ticker, msg){
@@ -42,25 +45,35 @@ Hub.prototype.sendByTicker = function(ticker, msg){
 
     Object.keys(this.clientsByTicker[ticker])
     .forEach(function(clientName){
-        this.clientsByTicker[ticker][clientName].send(msg);
+        this.clientsByTicker[ticker][clientName].send(msg, function(err){
+            if(err) client.close();
+        });
     }.bind(this));
 };
 
 Hub.prototype.pingPong = function(client){
     client.pingssent = 0;
+    client.on('error', function(){
+        client.close();
+    });
 
     var interval = setInterval(function() {
-        if (client.pingssent >= 2) {
+        if (client.pingssent >= 1) {
             client.close();
             clearInterval(interval);
         } else {
-            client.ping();
+            try{
+                client.ping();
+            } catch(e){
+                client.close();
+            }
             client.pingssent++;
         }
-    }, 75*1000);
+    }, 10*1000);
 
     client.on("pong", function() { 
         client.pingssent = 0; 
     });
 };
 
+module.exports.Hub = Hub;

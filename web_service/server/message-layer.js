@@ -20,6 +20,7 @@ module.exports = function(app){
 
 
     // receive client connections
+    // for now client only sends an initial message with identifying info
     app.ws('/ws', function(client, req) {
         client.on('message', function(msg){
             msg = JSON.parse(msg);

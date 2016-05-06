@@ -48,12 +48,20 @@ func main() {
 	session, err := mgo.Dial(url)
 	err = session.DB("tickerdb").DropDatabase()
 	if err != nil {
-		panic(err)
+		fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
 	}
 	defer session.Close()
 
 	publisher := func(tickPeriod *Period) {
-		tick, err := json.Marshal(tickPeriod)
+		tick, err := json.Marshal(struct {
+			Payload *Period `json:"payload"`
+			Api     string  `json:"api"`
+			Version string  `json:"version"`
+		}{
+			Api:     "ticker",
+			Version: "1",
+			Payload: tickPeriod,
+		})
 		if err != nil {
 			fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
 		}

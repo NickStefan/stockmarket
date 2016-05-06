@@ -33,8 +33,19 @@
 
                 socket.onmessage = function(e){
                     console.log(e.data);
-                    chart.addPartialData(JSON.parse(e.data));
-                    chart.draw();
+                    var msg = JSON.parse(e.data);
+
+                    switch (msg.api){
+                        case 'ticker':
+                        if (!msg.payload.volume){
+                            return;
+                        }
+                        chart.addPartialData(msg.payload);
+                        chart.draw();
+                        break;
+                        default:
+                        break;
+                    }
                 };
 
                 socket.onclose = function(e){

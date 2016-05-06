@@ -4,6 +4,14 @@ function Chart(options){
     this.selector = options.selector;
     this.label = options.label;
     this.periodMs = options.periodMs;
+
+    this.interval = setInterval(function(){
+        this.addPeriod();
+    }.bind(this), this.periodMs);
+}
+
+Chart.prototype.cleanup = function(){   
+    clearInterval(this.interval);
 }
 
 Chart.prototype.addData = function(data){
@@ -11,7 +19,22 @@ Chart.prototype.addData = function(data){
     this._data.shift();
 }
 
-// will need to setInterval,
+Chart.prototype.addPeriod = function(){
+    var lastPeriod = this._data[ this._data.length - 1];
+    var fakeTime = new Date(lastPeriod.date.getTime() + 1*60000);
+
+    var newPeriod = {
+        date: fakeTime, // live data would just use new Date()
+        high: lastPeriod.close,
+        low: lastPeriod.close,
+        open: lastPeriod.close,
+        close: lastPeriod.close
+    };
+
+    this._data.push(newPeriod);
+    this._data.shift();
+};
+
 // where on periodMs, add new whole node to end of this._data stack
 // in between that interval, call this method to update in place ticks
 Chart.prototype.addPartialData = function(data){
