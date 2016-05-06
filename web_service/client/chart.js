@@ -4,9 +4,14 @@ function Chart(options){
     this.selector = options.selector;
     this.label = options.label;
     this.periodMs = options.periodMs;
+    this.periods = options.periods;
 
+    this.addPeriod(); // should definitely check how recent last period is!!!
+
+    // but this interval part is mostly right
     this.interval = setInterval(function(){
         this.addPeriod();
+        this.draw();
     }.bind(this), this.periodMs);
 }
 
@@ -28,7 +33,8 @@ Chart.prototype.addPeriod = function(){
         high: lastPeriod.close,
         low: lastPeriod.close,
         open: lastPeriod.close,
-        close: lastPeriod.close
+        close: lastPeriod.close,
+        volume: 0
     };
 
     this._data.push(newPeriod);
@@ -59,23 +65,36 @@ Chart.prototype.addPartialData = function(data){
     last.volume = last.volume + data.volume;
 }
 
+Chart.prototype.getVisibleRange = function(){
+    var beginning  = this._data[0].date; // should default to new Date() ?
+    var end = new Date( beginning.getTime() + this.periods * this.periodMs);
+    return [beginning, end];
+};
+
+// TODO make bollinger bands optional
+// good way to flush out making the chart extendible 
 Chart.prototype.draw = function(){
 
     // compute the bollinger bands
-    var bollingerAlgorithm = fc.indicator.algorithm.bollingerBands();
-    bollingerAlgorithm(this._data);
+    //var bollingerAlgorithm = fc.indicator.algorithm.bollingerBands();
+    //bollingerAlgorithm(this._data);
 
     // Offset the range to include the full bar for the latest value
     var xExtent = fc.util.extent()
         .fields(["date"])
         .padUnit("domain")
-        .pad([this.periodMs * -bollingerAlgorithm.windowSize()(this._data), this.periodMs]);
+        //.pad([this.periodMs * -bollingerAlgorithm.windowSize()(this._data), this.periodMs])
+        .include(this.getVisibleRange(this._data));
+
+    var yExtent = fc.util.extent().fields(
+        ['low', 'high']
+    );
 
     // ensure y extent includes the bollinger bands
-    var yExtent = fc.util.extent().fields([
-        function(d) { return d.bollingerBands.upper; },
-        function(d) { return 0; }// return d.bollingerBands.lower; }
-    ]);
+    //var yExtent = fc.util.extent().fields([
+        //function(d) { return d.bollingerBands.upper; },
+        //function(d) { return 0; }// return d.bollingerBands.lower; }
+    //]);
 
     // create a chart
     var chart = fc.chart.cartesian(
@@ -102,11 +121,11 @@ Chart.prototype.draw = function(){
         .xTickValues(xTicks)
         .yTickValues(yTicks);
     var candlestick = fc.series.candlestick();
-    var bollingerBands = fc.indicator.renderer.bollingerBands();
+    //var bollingerBands = fc.indicator.renderer.bollingerBands();
 
     // add them to the chart via a multi-series
     var multi = fc.series.multi()
-        .series([gridlines, bollingerBands, candlestick]);
+        .series([gridlines, candlestick]);
 
     chart.plotArea(multi);
 
