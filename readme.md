@@ -28,7 +28,7 @@ _now in golang!_
   - [ ] handle accounts and authentication  
 
 - [ ] web client (front end)  
-  - [x] graph "CHART" data into a stock chart  
+  - [ ] graph "CHART" data into a stock chart  
   - [x] listen to "TICKER" channels  
   - [x] append new data to chart  
   - [ ] display account info  
