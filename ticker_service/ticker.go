@@ -42,7 +42,7 @@ func schedule(f func(), delaySeconds time.Duration) chan struct{} {
 }
 
 func main() {
-	messageUrl := "http://127.0.0.1:8004/msg/ticker"
+	messageUrl := "http://127.0.0.1:8004/msg/ticker/"
 	url := "mongodb://localhost"
 
 	session, err := mgo.Dial(url)
@@ -55,12 +55,12 @@ func main() {
 	publisher := func(tickPeriod *Period) {
 		tick, err := json.Marshal(tickPeriod)
 		if err != nil {
-			panic(err)
+			fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
 		}
 
-		messageResp, err := http.Post(messageUrl, "application/json", bytes.NewBuffer(tick))
+		messageResp, err := http.Post(messageUrl+tickPeriod.Ticker, "application/json", bytes.NewBuffer(tick))
 		if err != nil {
-			panic(err)
+			fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
 		}
 		defer messageResp.Body.Close()
 	}
@@ -114,8 +114,7 @@ func main() {
 		defer r.Body.Close()
 		err := decoder.Decode(&payload)
 		if err != nil {
-			fmt.Println("ERR: TICKER_SERVICE")
-			panic(err)
+			fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
 		}
 
 		minuteHash.add(payload[0])

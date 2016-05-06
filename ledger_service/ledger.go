@@ -62,7 +62,7 @@ func processTrade(data map[string]*Ledger, t Trade, o Trade) {
 	} else if t.Intent == "SELL" {
 		data[t.Actor].sell(t)
 	}
-	
+
 	if o.Intent == "BUY" {
 		data[o.Actor].buy(o)
 
@@ -82,8 +82,7 @@ func main() {
 		defer r.Body.Close()
 		err := decoder.Decode(&payload)
 		if err != nil {
-			fmt.Println("ERR: LEDGER_SERVICE")
-			panic(err)
+			fmt.Println("TODO: ledger_service fault tolerance needed; ", err)
 		}
 
 		mutex.Lock()

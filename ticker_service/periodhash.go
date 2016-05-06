@@ -1,7 +1,7 @@
 package main
 
 import (
-	// "fmt"
+	"fmt"
 	"gopkg.in/mgo.v2"
 	"sync"
 	"time"
@@ -90,7 +90,7 @@ func (m *PeriodHash) persist(l []interface{}) {
 	c := m.db.C("ticks")
 	err := c.Insert(l...)
 	if err != nil {
-		panic(err)
+		fmt.Println("TODO: fault tolerance needed; ", err)
 	}
 }
 
