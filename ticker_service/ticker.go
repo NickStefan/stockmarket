@@ -46,6 +46,7 @@ func main() {
 	url := "mongodb://localhost"
 
 	session, err := mgo.Dial(url)
+	// db.temperature.ensureIndex({'date': 1 })'}
 	err = session.DB("tickerdb").DropDatabase()
 	if err != nil {
 		fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
@@ -58,9 +59,9 @@ func main() {
 			Api     string  `json:"api"`
 			Version string  `json:"version"`
 		}{
+			Payload: tickPeriod,
 			Api:     "ticker",
 			Version: "1",
-			Payload: tickPeriod,
 		})
 		if err != nil {
 			fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
@@ -77,7 +78,7 @@ func main() {
 
 	minuteHash := NewPeriodHash(tickers)
 	minuteHash.setDB(session.DB("tickerdb"))
-	schedule(minuteHash.Persist, 60)
+	schedule(minuteHash.Persist, 10)
 
 	secondHash := NewPeriodHash(tickers)
 	secondHash.setPublisher(publisher)
@@ -116,7 +117,7 @@ func main() {
 	//      - publish to ticker channel, rate limit to one / second
 	//      - add to cache of last 60 seconds of trades
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/trade", func(w http.ResponseWriter, r *http.Request) {
 		var payload [2]Trade
 		decoder := json.NewDecoder(r.Body)
 		defer r.Body.Close()
@@ -128,6 +129,15 @@ func main() {
 		minuteHash.add(payload[0])
 		secondHash.add(payload[0])
 
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Status 200"))
+	})
+
+	tickAggregator := TickAggregator{}
+	tickAggregator.setDB(session.DB("tickerdb"))
+
+	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
+		tickAggregator.query()
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))
 	})

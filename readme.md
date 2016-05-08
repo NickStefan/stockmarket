@@ -39,6 +39,12 @@ _now in golang!_
   - [ ] front end UI for creating bots  
   - [ ] rule based trading using JSON {$when: ..., $buy: ... }  
 
+- [ ] discover service
+  - [ ] proxy each service
+  - [ ] load balance between multiple instances of each service
+  - [ ] health check API for each service
+  - [ ] api for adding and removing the proxied urls
+
 - [ ] nginx reverse proxy all services to one domain  
 - [ ] message queue between services  
   

@@ -8,13 +8,13 @@ import (
 )
 
 type Period struct {
-	High   float64 `json:"high"`
-	Low    float64 `json:"low"`
-	Open   float64 `json:"open"`
-	Close  float64 `json:"close"`
-	Volume int     `json:"volume"`
-	Ticker string  `json:"ticker"`
-	Time   int64   `json:"time"`
+	High   float64   `json:"high"`
+	Low    float64   `json:"low"`
+	Open   float64   `json:"open"`
+	Close  float64   `json:"close"`
+	Volume int       `json:"volume"`
+	Ticker string    `json:"ticker"`
+	Date   time.Time `json:"date"`
 }
 
 type PeriodHash struct {
@@ -28,7 +28,7 @@ func NewPeriodHash(tickers []string) *PeriodHash {
 	hash := make(map[string]*Period)
 
 	for _, ticker := range tickers {
-		hash[ticker] = &Period{Ticker: ticker}
+		hash[ticker] = &Period{Ticker: ticker, Date: time.Now()}
 	}
 
 	return &PeriodHash{
@@ -55,7 +55,6 @@ func (m *PeriodHash) add(t Trade) {
 		period.High = t.Price
 		period.Low = t.Price
 		period.Close = t.Price
-		period.Time = time.Now().Unix()
 	}
 
 	if period.Low > t.Price {
@@ -79,7 +78,7 @@ func (m *PeriodHash) Persist() {
 	for ticker, tickPeriod := range m.hash {
 		periods = append(periods, tickPeriod)
 		// reset hash
-		m.hash[ticker] = &Period{Ticker: ticker}
+		m.hash[ticker] = &Period{Ticker: ticker, Date: time.Now()}
 	}
 
 	m.persist(periods)
@@ -101,7 +100,7 @@ func (m *PeriodHash) Publish() {
 	for ticker, tickPeriod := range m.hash {
 		m.publish(tickPeriod)
 		// reset hash
-		m.hash[ticker] = &Period{Ticker: ticker}
+		m.hash[ticker] = &Period{Ticker: ticker, Date: time.Now()}
 	}
 }
 

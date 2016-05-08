@@ -126,7 +126,7 @@ type Trade struct {
 func main() {
 
 	ledgerUrl := "http://127.0.0.1:8002/fill"
-	tickerUrl := "http://127.0.0.1:8003/"
+	tickerUrl := "http://127.0.0.1:8003/trade"
 
 	orderBook := NewOrderBook()
 	var mutex sync.Mutex
