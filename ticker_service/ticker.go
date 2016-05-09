@@ -84,39 +84,6 @@ func main() {
 	secondHash.setPublisher(publisher)
 	schedule(secondHash.Publish, 1)
 
-	// {
-	//       timestamp_hour: ISODate("2013-10-10T23:00:00.000Z"),
-	//       type: “memory_used”,
-	//       values: {
-	//         0: {vol: 1000, open: 10.05, close: 10.55, high: 11.00, low: 10.00 },
-	//         1: {vol: 1000, open: 10.55, close: 10.60, high: 11.00, low: 10.50 },
-	//         …,
-	//         58: {vol: 1000, open: 10.65, close: 10.80, high: 11.00, low: 10.60 },
-	//         59: {vol: 1000, open: 10.65, close: 11.55, high: 12.00, low: 10.00 }
-	//       }
-	//     }
-	// }
-	// {$set: {“values.59”: {vol: 1000, open: 10.65, close: 11.55, high: 12.00, low: 10.00 } }
-
-	// basic charting:
-	// aggregate minute based data to correct format time ranges
-
-	// what will an aggregation query look like? "I want the last <X>(5?) <range>(days?) <duration>(hour?) chart"
-	// $match stock <X> * <range>
-	// $unwind values
-	// $groupby <duration> (want array of duration groups)
-	// $sum vol, $min low, $max hi, open, close of first?
-	// $map appropriate time stamps?
-
-	// real time chart:
-	// front end will merge published minute info into the chart's range
-
-	// 1 second ticker data will be separate channel, not persisted in a collection
-
-	// on price data
-	//      - publish to ticker channel, rate limit to one / second
-	//      - add to cache of last 60 seconds of trades
-
 	http.HandleFunc("/trade", func(w http.ResponseWriter, r *http.Request) {
 		var payload [2]Trade
 		decoder := json.NewDecoder(r.Body)
@@ -137,7 +104,12 @@ func main() {
 	tickAggregator.setDB(session.DB("tickerdb"))
 
 	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
-		tickAggregator.query()
+		tickAggregator.query(Query{
+			TickerName:   "STOCK",
+			Periods:      5,
+			PeriodNumber: 1,
+			PeriodName:   "minute",
+		})
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))
 	})

@@ -7,30 +7,32 @@ import (
 	"time"
 )
 
-type TickAggregator struct {
-	db *mgo.Database
+type Query struct {
+	TickerName   string
+	PeriodName   string
+	PeriodNumber int
+	Periods      int
+	StartDate    time.Time
+	EndDate      time.Time
 }
 
-func (t *TickAggregator) setDB(db *mgo.Database) {
-	t.db = db
+func (q *Query) Limit() bson.M {
+	return bson.M{"$limit": q.Periods}
 }
 
-// periodType ex: 1min, 5min, 1day
-// periodsRange ex: 5, 10, 20
-// ticker ex: 'STOCK'
-
-func MatchGroupSort(tickerName string, periods int, num int, periodName string) (bson.M, bson.M, bson.M) {
+func (q *Query) MatchGroupSort() (bson.M, bson.M, bson.M) {
 	group := bson.M{}
 	sort := bson.M{}
 	match := bson.M{}
 
+	var startDate time.Time
 	endDate := time.Now()
-	startDate := time.Now()
 	now := time.Now()
 
-	switch periodName {
+	switch q.PeriodName {
 	case "minute":
-		startDate = now.Add(-1 * (time.Duration(periods*num) * time.Minute))
+		startDate = now.Add(-1 * (time.Duration(q.Periods*q.PeriodNumber) * time.Minute))
+
 		group = bson.M{
 			"$group": bson.M{
 				"_id": bson.M{
@@ -42,7 +44,7 @@ func MatchGroupSort(tickerName string, periods int, num int, periodName string) 
 							{"$minute": "$date"},
 							{"$mod": []interface{}{
 								bson.M{"$minute": "$date"},
-								num,
+								q.PeriodNumber,
 							}},
 						},
 					},
@@ -62,7 +64,8 @@ func MatchGroupSort(tickerName string, periods int, num int, periodName string) 
 			"_id.year":      1,
 		}}
 	case "hour":
-		startDate = now.Add(-1 * (time.Duration(periods*num) * time.Hour))
+		startDate = now.Add(-1 * (time.Duration(q.Periods*q.PeriodNumber) * time.Hour))
+
 		group = bson.M{
 			"$group": bson.M{
 				"_id": bson.M{
@@ -73,7 +76,7 @@ func MatchGroupSort(tickerName string, periods int, num int, periodName string) 
 							{"$hour": "$date"},
 							{"$mod": []interface{}{
 								bson.M{"$hour": "$date"},
-								num,
+								q.PeriodNumber,
 							}},
 						},
 					},
@@ -92,7 +95,8 @@ func MatchGroupSort(tickerName string, periods int, num int, periodName string) 
 			"_id.year":      1,
 		}}
 	case "day":
-		startDate = now.Add(-1 * (time.Duration(periods*num*24) * time.Hour))
+		startDate = now.Add(-1 * (time.Duration(q.Periods*q.PeriodNumber*24) * time.Hour))
+
 		group = bson.M{
 			"$group": bson.M{
 				"_id": bson.M{
@@ -112,7 +116,8 @@ func MatchGroupSort(tickerName string, periods int, num int, periodName string) 
 			"_id.year":      1,
 		}}
 	case "week":
-		startDate = now.Add(-1 * (time.Duration(periods*num*24*7) * time.Hour))
+		startDate = now.Add(-1 * (time.Duration(q.Periods*q.PeriodNumber*24*7) * time.Hour))
+
 		group = bson.M{
 			"$group": bson.M{
 				"_id": bson.M{
@@ -132,7 +137,8 @@ func MatchGroupSort(tickerName string, periods int, num int, periodName string) 
 			"_id.year": 1,
 		}}
 	case "month":
-		startDate = now.Add(-1 * (time.Duration(periods*num*24*31) * time.Hour))
+		startDate = now.Add(-1 * (time.Duration(q.Periods*q.PeriodNumber*24*31) * time.Hour))
+
 		group = bson.M{
 			"$group": bson.M{
 				"_id": bson.M{
@@ -153,8 +159,16 @@ func MatchGroupSort(tickerName string, periods int, num int, periodName string) 
 		}}
 	}
 
+	if false == q.StartDate.IsZero() {
+		startDate = q.StartDate
+	}
+
+	if false == q.EndDate.IsZero() {
+		endDate = q.EndDate
+	}
+
 	match = bson.M{"$match": bson.M{
-		"ticker": tickerName,
+		"ticker": q.TickerName,
 		"date": bson.M{
 			"$gte": startDate,
 			"$lte": endDate,
@@ -164,9 +178,16 @@ func MatchGroupSort(tickerName string, periods int, num int, periodName string) 
 	return match, group, sort
 }
 
-func (t *TickAggregator) query() {
-	match, group, sort := MatchGroupSort("STOCK", 5, 1, "minute")
-	// need to limit range
+type TickAggregator struct {
+	db *mgo.Database
+}
+
+func (t *TickAggregator) setDB(db *mgo.Database) {
+	t.db = db
+}
+func (t *TickAggregator) query(q Query) {
+	match, group, sort := q.MatchGroupSort()
+
 	c := t.db.C("ticks")
 	pipe := c.Pipe([]bson.M{
 		match,
@@ -184,6 +205,7 @@ func (t *TickAggregator) query() {
 			"volume":   "$volume",
 		}},
 	})
+
 	results := []bson.M{}
 	err := pipe.All(&results)
 	if err != nil {
