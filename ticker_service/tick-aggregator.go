@@ -16,10 +16,6 @@ type Query struct {
 	EndDate      time.Time
 }
 
-func (q *Query) Limit() bson.M {
-	return bson.M{"$limit": q.Periods}
-}
-
 func (q *Query) MatchGroupSort() (bson.M, bson.M, bson.M) {
 	group := bson.M{}
 	sort := bson.M{}
@@ -29,9 +25,13 @@ func (q *Query) MatchGroupSort() (bson.M, bson.M, bson.M) {
 	endDate := time.Now()
 	now := time.Now()
 
+	// query for one extra period to ensure we dont miss it by a half period
+	// the limit action that happens in actual Pipe then corrects it back
+	periods := q.Periods + 1
+
 	switch q.PeriodName {
 	case "minute":
-		startDate = now.Add(-1 * (time.Duration(q.Periods*q.PeriodNumber) * time.Minute))
+		startDate = now.Add(-1 * (time.Duration(periods*q.PeriodNumber) * time.Minute))
 
 		group = bson.M{
 			"$group": bson.M{
@@ -58,13 +58,13 @@ func (q *Query) MatchGroupSort() (bson.M, bson.M, bson.M) {
 		}
 
 		sort = bson.M{"$sort": bson.M{
-			"_id.interval":  1,
-			"_id.hour":      1,
-			"_id.dayOfYear": 1,
 			"_id.year":      1,
+			"_id.dayOfYear": 1,
+			"_id.hour":      1,
+			"_id.interval":  1,
 		}}
 	case "hour":
-		startDate = now.Add(-1 * (time.Duration(q.Periods*q.PeriodNumber) * time.Hour))
+		startDate = now.Add(-1 * (time.Duration(periods*q.PeriodNumber) * time.Hour))
 
 		group = bson.M{
 			"$group": bson.M{
@@ -90,12 +90,12 @@ func (q *Query) MatchGroupSort() (bson.M, bson.M, bson.M) {
 		}
 
 		sort = bson.M{"$sort": bson.M{
-			"_id.interval":  1,
-			"_id.dayOfYear": 1,
 			"_id.year":      1,
+			"_id.dayOfYear": 1,
+			"_id.interval":  1,
 		}}
 	case "day":
-		startDate = now.Add(-1 * (time.Duration(q.Periods*q.PeriodNumber*24) * time.Hour))
+		startDate = now.Add(-1 * (time.Duration(periods*q.PeriodNumber*24) * time.Hour))
 
 		group = bson.M{
 			"$group": bson.M{
@@ -112,11 +112,11 @@ func (q *Query) MatchGroupSort() (bson.M, bson.M, bson.M) {
 		}
 
 		sort = bson.M{"$sort": bson.M{
-			"_id.dayOfYear": 1,
 			"_id.year":      1,
+			"_id.dayOfYear": 1,
 		}}
 	case "week":
-		startDate = now.Add(-1 * (time.Duration(q.Periods*q.PeriodNumber*24*7) * time.Hour))
+		startDate = now.Add(-1 * (time.Duration(periods*q.PeriodNumber*24*7) * time.Hour))
 
 		group = bson.M{
 			"$group": bson.M{
@@ -133,11 +133,11 @@ func (q *Query) MatchGroupSort() (bson.M, bson.M, bson.M) {
 		}
 
 		sort = bson.M{"$sort": bson.M{
-			"_id.week": 1,
 			"_id.year": 1,
+			"_id.week": 1,
 		}}
 	case "month":
-		startDate = now.Add(-1 * (time.Duration(q.Periods*q.PeriodNumber*24*31) * time.Hour))
+		startDate = now.Add(-1 * (time.Duration(periods*q.PeriodNumber*24*31) * time.Hour))
 
 		group = bson.M{
 			"$group": bson.M{
@@ -154,8 +154,8 @@ func (q *Query) MatchGroupSort() (bson.M, bson.M, bson.M) {
 		}
 
 		sort = bson.M{"$sort": bson.M{
-			"_id.month": 1,
 			"_id.year":  1,
+			"_id.month": 1,
 		}}
 	}
 
@@ -166,6 +166,9 @@ func (q *Query) MatchGroupSort() (bson.M, bson.M, bson.M) {
 	if false == q.EndDate.IsZero() {
 		endDate = q.EndDate
 	}
+
+	fmt.Println("startDate", startDate)
+	fmt.Println("endDate", endDate)
 
 	match = bson.M{"$match": bson.M{
 		"ticker": q.TickerName,
@@ -185,7 +188,7 @@ type TickAggregator struct {
 func (t *TickAggregator) setDB(db *mgo.Database) {
 	t.db = db
 }
-func (t *TickAggregator) query(q Query) {
+func (t *TickAggregator) query(q Query) []bson.M {
 	match, group, sort := q.MatchGroupSort()
 
 	c := t.db.C("ticks")
@@ -211,5 +214,10 @@ func (t *TickAggregator) query(q Query) {
 	if err != nil {
 		fmt.Println("TODO: fault tolerance needed; ", err)
 	}
-	fmt.Println(results)
+
+	limitStart := 0
+	if len(results) > q.Periods {
+		limitStart = len(results) - q.Periods
+	}
+	return results[limitStart:]
 }

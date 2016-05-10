@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"gopkg.in/mgo.v2"
+	//"gopkg.in/mgo.v2/bson"
 	"net/http"
 	"time"
 )
@@ -47,7 +48,7 @@ func main() {
 
 	session, err := mgo.Dial(url)
 	// db.temperature.ensureIndex({'date': 1 })'}
-	err = session.DB("tickerdb").DropDatabase()
+	//err = session.DB("tickerdb").DropDatabase()
 	if err != nil {
 		fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
 	}
@@ -78,7 +79,7 @@ func main() {
 
 	minuteHash := NewPeriodHash(tickers)
 	minuteHash.setDB(session.DB("tickerdb"))
-	schedule(minuteHash.Persist, 10)
+	schedule(minuteHash.Persist, 60)
 
 	secondHash := NewPeriodHash(tickers)
 	secondHash.setPublisher(publisher)
@@ -104,14 +105,21 @@ func main() {
 	tickAggregator.setDB(session.DB("tickerdb"))
 
 	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
-		tickAggregator.query(Query{
+		results := tickAggregator.query(Query{
 			TickerName:   "STOCK",
-			Periods:      5,
+			Periods:      2,
 			PeriodNumber: 1,
 			PeriodName:   "minute",
 		})
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Status 200"))
+
+		resultsJSON, err := json.Marshal(results)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Status", "200")
+		w.Write(resultsJSON)
 	})
 
 	http.ListenAndServe(":8003", nil)
