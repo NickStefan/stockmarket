@@ -32,6 +32,9 @@ func (o *PeriodHash) get(key string) *Period {
 	if err != nil {
 		fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
 	}
+	if o.prefix == "minute" {
+		//fmt.Println("get", period)
+	}
 	return period
 }
 
@@ -46,6 +49,9 @@ func (o *PeriodHash) set(key string, period *Period) {
 
 	serialized, err := json.Marshal(period)
 	_, err = conn.Do("SET", o.prefix+key, serialized)
+	if o.prefix == "minute" {
+		//fmt.Println("res", res)
+	}
 	if err != nil {
 		fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
 	}

@@ -67,6 +67,8 @@ func (m *PeriodManager) add(t Trade) {
 
 	period.Volume = period.Volume + t.Shares
 	period.Close = t.Price
+
+	m.hash.set(t.Ticker, period)
 }
 
 func (m *PeriodManager) Persist() {
