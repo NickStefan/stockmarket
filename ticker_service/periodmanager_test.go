@@ -2,6 +2,8 @@ package main
 
 import (
 	. "github.com/franela/goblin"
+	"github.com/garyburd/redigo/redis"
+	"github.com/rafaeljusto/redigomock"
 	"testing"
 )
 
@@ -10,10 +12,20 @@ func TestPeriodManager(t *testing.T) {
 	g := Goblin(t)
 
 	g.Describe("PeriodManager", func() {
+		var redisPool *redis.Pool
+
+		g.BeforeEach(func() {
+			redisPool = redis.NewPool(func() (redis.Conn, error) {
+				c := redigomock.NewConn()
+				var err error
+				return c, err
+			}, 10)
+		})
 
 		g.It("should add each trade to the period manager", func() {
 
-			periodManager := NewPeriodManager([]string{"STOCK"})
+			periodHash := NewPeriodHash(redisPool, "")
+			periodManager := NewPeriodManager([]string{"STOCK"}, periodHash)
 
 			periodManager.add(Trade{
 				Shares: 150, Ticker: "STOCK", Price: 10.50,
