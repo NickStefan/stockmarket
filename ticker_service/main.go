@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"gopkg.in/mgo.v2"
 	//"gopkg.in/mgo.v2/bson"
+	"github.com/garyburd/redigo/redis"
 	"net/http"
 	"time"
 )
@@ -44,15 +45,31 @@ func schedule(f func(), delaySeconds time.Duration) chan struct{} {
 
 func main() {
 	messageUrl := "http://127.0.0.1:8004/msg/ticker/"
-	url := "mongodb://localhost"
 
-	session, err := mgo.Dial(url)
-	// db.temperature.ensureIndex({'date': 1 })'}
-	//err = session.DB("tickerdb").DropDatabase()
+	redisAddress := ":6379"
+	maxConnections := 10
+
+	mongoAddress := "mongodb://localhost"
+
+	mongoSession, err := mgo.Dial(mongoAddress)
+	// db.tickerdb.ticks.ensureIndex({'date': 1 })'}
+	err = mongoSession.DB("tickerdb").DropDatabase()
 	if err != nil {
 		fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
 	}
-	defer session.Close()
+	defer mongoSession.Close()
+
+	redisPool := redis.NewPool(func() (redis.Conn, error) {
+		c, err := redis.Dial("tcp", redisAddress)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return c, err
+	}, maxConnections)
+
+	defer redisPool.Close()
 
 	publisher := func(tickPeriod *Period) {
 		tick, err := json.Marshal(struct {
@@ -77,13 +94,15 @@ func main() {
 
 	tickers := []string{"STOCK"}
 
-	minuteHash := NewPeriodHash(tickers)
-	minuteHash.setDB(session.DB("tickerdb"))
-	schedule(minuteHash.Persist, 60)
+	minuteRedis := NewPeriodHash(redisPool, "minute")
+	minuteManager := NewPeriodManager(tickers, minuteRedis)
+	minuteManager.setDB(mongoSession.DB("tickerdb"))
+	schedule(minuteManager.Persist, 60)
 
-	secondHash := NewPeriodHash(tickers)
-	secondHash.setPublisher(publisher)
-	schedule(secondHash.Publish, 1)
+	secondRedis := NewPeriodHash(redisPool, "second")
+	secondManager := NewPeriodManager(tickers, secondRedis)
+	secondManager.setPublisher(publisher)
+	schedule(secondManager.Publish, 1)
 
 	http.HandleFunc("/trade", func(w http.ResponseWriter, r *http.Request) {
 		var payload [2]Trade
@@ -94,15 +113,17 @@ func main() {
 			fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
 		}
 
-		minuteHash.add(payload[0])
-		secondHash.add(payload[0])
+		minuteManager.add(payload[0])
+		secondManager.add(payload[0])
 
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))
 	})
 
 	tickAggregator := TickAggregator{}
-	tickAggregator.setDB(session.DB("tickerdb"))
+	// set REDIS connection
+	// before returning query, (append || mixin) redis info
+	tickAggregator.setDB(mongoSession.DB("tickerdb"))
 
 	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
 		results := tickAggregator.query(Query{

@@ -10,6 +10,8 @@ if [[ $1 == "local" ]]; then
     cd $service && go install && cd ..
   done
 
+  redis-server > /dev/null &
+
   mongod > /dev/null &
 
   node ./web_service/server/app.js &
@@ -42,6 +44,8 @@ fi
 # LIST
 if [[ $1 == "list" ]]; then
 
+  ps aux | grep redis-server | grep -v grep
+
   ps aux | grep mongod | grep -v grep
 
   ps aux | grep web_service | grep -v grep
@@ -62,6 +66,8 @@ fi
 
 # KILL
 if [[ $1 == "kill" ]]; then
+
+  pkill -x redis-server
 
   pkill -x mongod
 
