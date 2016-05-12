@@ -124,10 +124,17 @@ func main() {
 	tickAggregator.setDB(mongoSession.DB("tickerdb"))
 	tickAggregator.setKV(minuteRedis)
 
+	//TODO
+	//TODO
+	//TODO
+	//TODO
+	//TODO
+	// handle post body parameters
+	// e.g. rest API
 	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
 		results := tickAggregator.query(Query{
 			TickerName:   "STOCK",
-			Periods:      2,
+			Periods:      20,
 			PeriodNumber: 1,
 			PeriodName:   "minute",
 		})

@@ -19,7 +19,7 @@ _now in golang!_
   - [x] on price data http, update minute high, low, open, close, vol information  
   - [x] every 60 seconds, persist 1minute period tick data to DB  
   - [x] every 1 second, publish 1second period tick data to websockets
-  - [ ] deal with 0d out values in ticker values
+  - [?] deal with 0d out values in ticker values
   - [ ] REST API for charts
 
 - [ ] web service  
@@ -28,7 +28,7 @@ _now in golang!_
   - [ ] handle accounts and authentication  
 
 - [ ] web client (front end)  
-  - [ ] graph "CHART" data into a stock chart  
+  - [x] graph "CHART" data into a stock chart  
   - [x] listen to "TICKER" channels  
   - [x] append new data to chart  
   - [ ] display account info  

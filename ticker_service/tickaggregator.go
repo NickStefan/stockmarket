@@ -364,8 +364,13 @@ func (t *TickAggregator) query(q Query) []interface{} {
 		fmt.Println("TODO: fault tolerance needed; ", err)
 	}
 
+	// ADD REDIS PERIOD IF IN QUERY
+	endDate := time.Now()
+	if false == q.EndDate.IsZero() {
+		endDate = q.EndDate
+	}
 	currentTicker := t.currentTicker(q.TickerName)
-	if q.EndDate.Unix() > currentTicker.Date.Unix() {
+	if endDate.Unix() > currentTicker.Date.Unix() {
 		results = append(results, currentTicker)
 	}
 

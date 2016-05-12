@@ -38,7 +38,10 @@ Chart.prototype.addPeriod = function(){
     };
 
     this._data.push(newPeriod);
-    this._data.shift();
+
+    if (this._data > this.periods){
+        this._data.shift();
+    }
 };
 
 // where on periodMs, add new whole node to end of this._data stack
