@@ -4,9 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"gopkg.in/mgo.v2"
-	//"gopkg.in/mgo.v2/bson"
 	"github.com/garyburd/redigo/redis"
+	"gopkg.in/mgo.v2"
 	"net/http"
 	"time"
 )
@@ -121,9 +120,17 @@ func main() {
 	})
 
 	tickAggregator := TickAggregator{}
+
+	// TODO
+	// TODO
+	// TODO
+	// TODO
+	// TODO
+	// TODO
 	// set REDIS connection
 	// before returning query, (append || mixin) redis info
 	tickAggregator.setDB(mongoSession.DB("tickerdb"))
+	tickAggregator.setKV(minuteRedis)
 
 	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
 		results := tickAggregator.query(Query{

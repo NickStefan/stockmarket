@@ -182,13 +182,23 @@ func (q *Query) MatchGroupSort() (bson.M, bson.M, bson.M) {
 }
 
 type TickAggregator struct {
-	db *mgo.Database
+	db   *mgo.Database
+	hash *PeriodHash
 }
 
 func (t *TickAggregator) setDB(db *mgo.Database) {
 	t.db = db
 }
-func (t *TickAggregator) query(q Query) []bson.M {
+
+func (t *TickAggregator) setKV(hash *PeriodHash) {
+	t.hash = hash
+}
+
+func (t *TickAggregator) currentTicker(ticker string) *Period {
+	return t.hash.get(ticker)
+}
+
+func (t *TickAggregator) query(q Query) []interface{} {
 	match, group, sort := q.MatchGroupSort()
 
 	c := t.db.C("ticks")
@@ -209,11 +219,13 @@ func (t *TickAggregator) query(q Query) []bson.M {
 		}},
 	})
 
-	results := []bson.M{}
+	var results []interface{}
 	err := pipe.All(&results)
 	if err != nil {
 		fmt.Println("TODO: fault tolerance needed; ", err)
 	}
+
+	results = append(results, t.currentTicker(q.TickerName))
 
 	limitStart := 0
 	if len(results) > q.Periods {

@@ -34,6 +34,13 @@ func main() {
 			fmt.Println("TODO: orderbook fault tolerance needed; ", err)
 		}
 
+		// TODO
+		// TODO
+		// TODO
+		// TODO
+		// TODO
+		// should put some logs here to test if ledger Post
+		// blocks the ticker post
 		ledgerResp, err := http.Post(ledgerUrl, "application/json", bytes.NewBuffer(trade))
 		if err != nil {
 			fmt.Println("TODO: orderbook fault tolerance needed; ", err)
