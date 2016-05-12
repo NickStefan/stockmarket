@@ -121,14 +121,6 @@ func main() {
 
 	tickAggregator := TickAggregator{}
 
-	// TODO
-	// TODO
-	// TODO
-	// TODO
-	// TODO
-	// TODO
-	// set REDIS connection
-	// before returning query, (append || mixin) redis info
 	tickAggregator.setDB(mongoSession.DB("tickerdb"))
 	tickAggregator.setKV(minuteRedis)
 
@@ -146,6 +138,7 @@ func main() {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
+		w.Header().Add("Access-Control-Allow-Origin", "http://localhost:8004")
 		w.Header().Set("Status", "200")
 		w.Write(resultsJSON)
 	})

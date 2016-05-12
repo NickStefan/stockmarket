@@ -16,14 +16,23 @@ type Query struct {
 	EndDate      time.Time
 }
 
-func (q *Query) MatchGroupSort() (bson.M, bson.M, bson.M) {
+func (q *Query) MatchGroupSortProject() (bson.M, bson.M, bson.M, bson.M) {
 	group := bson.M{}
 	sort := bson.M{}
 	match := bson.M{}
+	project := bson.M{}
 
-	var startDate time.Time
+	startDate := time.Time{}
 	endDate := time.Now()
 	now := time.Now()
+
+	if false == q.StartDate.IsZero() {
+		startDate = q.StartDate
+	}
+
+	if false == q.EndDate.IsZero() {
+		endDate = q.EndDate
+	}
 
 	// query for one extra period to ensure we dont miss it by a half period
 	// the limit action that happens in actual Pipe then corrects it back
@@ -31,7 +40,9 @@ func (q *Query) MatchGroupSort() (bson.M, bson.M, bson.M) {
 
 	switch q.PeriodName {
 	case "minute":
-		startDate = now.Add(-1 * (time.Duration(periods*q.PeriodNumber) * time.Minute))
+		if true == startDate.IsZero() {
+			startDate = now.Add(-1 * (time.Duration(periods*q.PeriodNumber) * time.Minute))
+		}
 
 		group = bson.M{
 			"$group": bson.M{
@@ -63,6 +74,38 @@ func (q *Query) MatchGroupSort() (bson.M, bson.M, bson.M) {
 			"_id.hour":      1,
 			"_id.interval":  1,
 		}}
+
+		project = bson.M{"$project": bson.M{
+			"_id": false,
+			"date": bson.M{
+				"$add": []interface{}{
+					time.Date(startDate.Year(), time.January, 0, 0, 0, 0, 0, time.UTC),
+					bson.M{
+						"$multiply": []interface{}{
+							bson.M{"$subtract": []interface{}{"$_id.year", startDate.Year()}},
+							365 * 24 * 60 * 60 * 1000,
+						},
+					},
+					bson.M{
+						"$multiply": []interface{}{"$_id.dayOfYear", 24 * 60 * 60 * 1000},
+					},
+					bson.M{
+						"$multiply": []interface{}{"$_id.hour", 60 * 60 * 1000},
+					},
+					bson.M{
+						"$multiply": []interface{}{"$_id.interval", 60 * 1000},
+					},
+				},
+			},
+			"interval": "$_id.interval",
+			"open":     "$open",
+			"close":    "$close",
+			"high":     "$high",
+			"low":      "$low",
+			"ticker":   "$ticker",
+			"volume":   "$volume",
+		}}
+
 	case "hour":
 		startDate = now.Add(-1 * (time.Duration(periods*q.PeriodNumber) * time.Hour))
 
@@ -94,8 +137,39 @@ func (q *Query) MatchGroupSort() (bson.M, bson.M, bson.M) {
 			"_id.dayOfYear": 1,
 			"_id.interval":  1,
 		}}
+
+		project = bson.M{"$project": bson.M{
+			"_id": false,
+			"date": bson.M{
+				"$add": []interface{}{
+					time.Date(startDate.Year(), time.January, 0, 0, 0, 0, 0, time.UTC),
+					bson.M{
+						"$multiply": []interface{}{
+							bson.M{"$subtract": []interface{}{"$_id.year", startDate.Year()}},
+							365 * 24 * 60 * 60 * 1000,
+						},
+					},
+					bson.M{
+						"$multiply": []interface{}{"$_id.dayOfYear", 24 * 60 * 60 * 1000},
+					},
+					bson.M{
+						"$multiply": []interface{}{"$_id.interval", 60 * 1000},
+					},
+				},
+			},
+			"interval": "$_id.interval",
+			"open":     "$open",
+			"close":    "$close",
+			"high":     "$high",
+			"low":      "$low",
+			"ticker":   "$ticker",
+			"volume":   "$volume",
+		}}
+
 	case "day":
-		startDate = now.Add(-1 * (time.Duration(periods*q.PeriodNumber*24) * time.Hour))
+		if true == startDate.IsZero() {
+			startDate = now.Add(-1 * (time.Duration(periods*q.PeriodNumber*24) * time.Hour))
+		}
 
 		group = bson.M{
 			"$group": bson.M{
@@ -115,8 +189,36 @@ func (q *Query) MatchGroupSort() (bson.M, bson.M, bson.M) {
 			"_id.year":      1,
 			"_id.dayOfYear": 1,
 		}}
+
+		project = bson.M{"$project": bson.M{
+			"_id": false,
+			"date": bson.M{
+				"$add": []interface{}{
+					time.Date(startDate.Year(), time.January, 0, 0, 0, 0, 0, time.UTC),
+					bson.M{
+						"$multiply": []interface{}{
+							bson.M{"$subtract": []interface{}{"$_id.year", startDate.Year()}},
+							365 * 24 * 60 * 60 * 1000,
+						},
+					},
+					bson.M{
+						"$multiply": []interface{}{"$_id.dayOfYear", 24 * 60 * 60 * 1000},
+					},
+				},
+			},
+			"interval": "$_id.interval",
+			"open":     "$open",
+			"close":    "$close",
+			"high":     "$high",
+			"low":      "$low",
+			"ticker":   "$ticker",
+			"volume":   "$volume",
+		}}
+
 	case "week":
-		startDate = now.Add(-1 * (time.Duration(periods*q.PeriodNumber*24*7) * time.Hour))
+		if true == startDate.IsZero() {
+			startDate = now.Add(-1 * (time.Duration(periods*q.PeriodNumber*24*7) * time.Hour))
+		}
 
 		group = bson.M{
 			"$group": bson.M{
@@ -136,8 +238,36 @@ func (q *Query) MatchGroupSort() (bson.M, bson.M, bson.M) {
 			"_id.year": 1,
 			"_id.week": 1,
 		}}
+
+		project = bson.M{"$project": bson.M{
+			"_id": false,
+			"date": bson.M{
+				"$add": []interface{}{
+					time.Date(startDate.Year(), time.January, 0, 0, 0, 0, 0, time.UTC),
+					bson.M{
+						"$multiply": []interface{}{
+							bson.M{"$subtract": []interface{}{"$_id.year", startDate.Year()}},
+							365 * 24 * 60 * 60 * 1000,
+						},
+					},
+					bson.M{
+						"$multiply": []interface{}{"$_id.week", 7 * 24 * 60 * 60 * 1000},
+					},
+				},
+			},
+			"interval": "$_id.interval",
+			"open":     "$open",
+			"close":    "$close",
+			"high":     "$high",
+			"low":      "$low",
+			"ticker":   "$ticker",
+			"volume":   "$volume",
+		}}
+
 	case "month":
-		startDate = now.Add(-1 * (time.Duration(periods*q.PeriodNumber*24*31) * time.Hour))
+		if true == startDate.IsZero() {
+			startDate = now.Add(-1 * (time.Duration(periods*q.PeriodNumber*24*31) * time.Hour))
+		}
 
 		group = bson.M{
 			"$group": bson.M{
@@ -157,14 +287,32 @@ func (q *Query) MatchGroupSort() (bson.M, bson.M, bson.M) {
 			"_id.year":  1,
 			"_id.month": 1,
 		}}
-	}
 
-	if false == q.StartDate.IsZero() {
-		startDate = q.StartDate
-	}
+		project = bson.M{"$project": bson.M{
+			"_id": false,
+			"date": bson.M{
+				"$add": []interface{}{
+					time.Date(startDate.Year(), time.January, 0, 0, 0, 0, 0, time.UTC),
+					bson.M{
+						"$multiply": []interface{}{
+							bson.M{"$subtract": []interface{}{"$_id.year", startDate.Year()}},
+							365 * 24 * 60 * 60 * 1000,
+						},
+					},
+					bson.M{
+						"$multiply": []interface{}{"$_id.month", 31 * 24 * 60 * 60 * 1000},
+					},
+				},
+			},
+			"interval": "$_id.interval",
+			"open":     "$open",
+			"close":    "$close",
+			"high":     "$high",
+			"low":      "$low",
+			"ticker":   "$ticker",
+			"volume":   "$volume",
+		}}
 
-	if false == q.EndDate.IsZero() {
-		endDate = q.EndDate
 	}
 
 	fmt.Println("startDate", startDate)
@@ -178,7 +326,7 @@ func (q *Query) MatchGroupSort() (bson.M, bson.M, bson.M) {
 		},
 	}}
 
-	return match, group, sort
+	return match, group, sort, project
 }
 
 type TickAggregator struct {
@@ -199,7 +347,7 @@ func (t *TickAggregator) currentTicker(ticker string) *Period {
 }
 
 func (t *TickAggregator) query(q Query) []interface{} {
-	match, group, sort := q.MatchGroupSort()
+	match, group, sort, project := q.MatchGroupSortProject()
 
 	c := t.db.C("ticks")
 	pipe := c.Pipe([]bson.M{
@@ -207,16 +355,7 @@ func (t *TickAggregator) query(q Query) []interface{} {
 		{"$sort": bson.M{"date": 1}},
 		group,
 		sort,
-		{"$project": bson.M{
-			"_id":      false,
-			"interval": "$_id.interval",
-			"open":     "$open",
-			"close":    "$close",
-			"high":     "$high",
-			"low":      "$low",
-			"ticker":   "$ticker",
-			"volume":   "$volume",
-		}},
+		project,
 	})
 
 	var results []interface{}
@@ -225,7 +364,10 @@ func (t *TickAggregator) query(q Query) []interface{} {
 		fmt.Println("TODO: fault tolerance needed; ", err)
 	}
 
-	results = append(results, t.currentTicker(q.TickerName))
+	currentTicker := t.currentTicker(q.TickerName)
+	if q.EndDate.Unix() > currentTicker.Date.Unix() {
+		results = append(results, currentTicker)
+	}
 
 	limitStart := 0
 	if len(results) > q.Periods {

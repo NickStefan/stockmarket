@@ -6,7 +6,7 @@ function Chart(options){
     this.periodMs = options.periodMs;
     this.periods = options.periods;
 
-    this.addPeriod(); // should definitely check how recent last period is!!!
+    //this.addPeriod(); // should definitely check how recent last period is!!!
 
     // but this interval part is mostly right
     this.interval = setInterval(function(){
@@ -29,7 +29,7 @@ Chart.prototype.addPeriod = function(){
     var fakeTime = new Date(lastPeriod.date.getTime() + 1*60000);
 
     var newPeriod = {
-        date: fakeTime, // live data would just use new Date()
+        date: new Date(), // fakeTime, // live data would just use new Date()
         high: lastPeriod.close,
         low: lastPeriod.close,
         open: lastPeriod.close,

@@ -8,60 +8,10 @@
     <body>
         <div id="streaming-chart" class="chart large"></div>
         <script src="https://d3fc.io/d3fc.bundle.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/async/1.5.2/async.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.js"></script>
         <script src="assets/data.js"></script>
         <script src="assets/chart.js"></script>
-        <script>
-            var chart = new Chart({
-                data: window._data,
-                selector: "#streaming-chart",
-                label: "STOCK chart",
-                periodMs: 1000 * 60, // * 60 * 24;
-                periods: 50
-            });
-
-            chart.draw();
-            
-            if (window.WebSocket){
-                socket = new WebSocket("ws://localhost:8004/ws");
-
-                socket.onopen = function(e){
-                    var msg = JSON.stringify({
-                        user_id: 'userNick',
-                        tickers: ['STOCK']
-                    });
-                    socket.send(msg);
-                };
-
-                socket.onmessage = function(e){
-                    console.log(e.data);
-                    var msg = JSON.parse(e.data);
-
-                    switch (msg.api){
-                        case 'ticker':
-                        if (!msg.payload.volume){
-                            return;
-                        }
-                        chart.addPartialData(msg.payload);
-                        chart.draw();
-                        break;
-                        default:
-                        break;
-                    }
-                };
-
-                socket.onclose = function(e){
-                    console.log("connection closed");
-                };
-            }
-            
-            /*
-            setInterval(function(){
-                if (stream.length !== 0){
-                    chart.addData(stream.next());
-                    chart.draw();
-                }
-            }, 1000);
-            */
-        </script>
-    </body>
+        <script src="assets/app.js"></script>
+   </body>
 </html>
