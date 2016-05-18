@@ -82,7 +82,7 @@ func main() {
 			// fmt.Println(order.Intent, "ORDER", order.price())
 			orderBook.add(order)
 		}
-		orderBook.run()
+		orderBook.run("STOCK")
 
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))

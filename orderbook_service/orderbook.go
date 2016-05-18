@@ -10,8 +10,7 @@ import (
 type OrderBook struct {
 	lastPrice   float64
 	handleTrade tradehandler
-	buyQueue    heap.Heap
-	sellQueue   heap.Heap
+	orderQueue  *OrderQueue
 	orderHash   *OrderHash
 }
 
@@ -21,12 +20,12 @@ func NewOrderBook(pool *redis.Pool) *OrderBook {
 	return &OrderBook{
 		handleTrade: func(t Trade, o Trade) {},
 		orderHash:   NewOrderHash(pool, ""),
-		buyQueue:    heap.Heap{Priority: "max"},
-		sellQueue:   heap.Heap{Priority: "min"},
+		orderQueue:  NewOrderQueue(pool),
 	}
 }
 
 func (o *OrderBook) setEnv(env string) {
+	o.orderQueue.setEnv(env)
 	o.orderHash.setEnv(env)
 }
 
@@ -35,20 +34,11 @@ func (o *OrderBook) setTradeHandler(execTrade tradehandler) {
 }
 
 func (o *OrderBook) add(order *Order) {
-	if order.Intent == "BUY" {
-		o.orderHash.set(order.lookup(), order)
-		o.buyQueue.Enqueue(&heap.Node{
-			Value:  order.price(),
-			Lookup: order.lookup(),
-		})
-
-	} else if order.Intent == "SELL" {
-		o.orderHash.set(order.lookup(), order)
-		o.sellQueue.Enqueue(&heap.Node{
-			Value:  order.price(),
-			Lookup: order.lookup(),
-		})
-	}
+	o.orderHash.set(order.lookup(), order)
+	o.orderQueue.Enqueue(order.Intent+order.Ticker, &heap.Node{
+		Value:  order.price(),
+		Lookup: order.lookup(),
+	})
 }
 
 func (o *OrderBook) negotiatePrice(b *Order, s *Order) float64 {
@@ -69,9 +59,9 @@ func (o *OrderBook) negotiatePrice(b *Order, s *Order) float64 {
 	return o.lastPrice
 }
 
-func (o *OrderBook) run() {
-	buyTop := o.buyQueue.Peek()
-	sellTop := o.sellQueue.Peek()
+func (o *OrderBook) run(ticker string) {
+	buyTop := o.orderQueue.Peek("BUY" + ticker)
+	sellTop := o.orderQueue.Peek("SELL" + ticker)
 
 	for buyTop != nil && sellTop != nil && buyTop.Value >= sellTop.Value {
 
@@ -80,8 +70,8 @@ func (o *OrderBook) run() {
 		price := o.negotiatePrice(buy, sell)
 
 		if buy.Shares == sell.Shares {
-			o.buyQueue.Dequeue()
-			o.sellQueue.Dequeue()
+			o.orderQueue.Dequeue("BUY" + ticker)
+			o.orderQueue.Dequeue("SELL" + ticker)
 
 			o.handleTrade(buy.fill(price), sell.fill(price))
 
@@ -89,7 +79,7 @@ func (o *OrderBook) run() {
 			o.orderHash.remove(sellTop.Lookup)
 
 		} else if buy.Shares < sell.Shares {
-			o.buyQueue.Dequeue()
+			o.orderQueue.Dequeue("BUY" + ticker)
 			remainderSell := sell.Shares - buy.Shares
 
 			o.handleTrade(buy.fill(price), sell.partialFill(price, remainderSell))
@@ -97,7 +87,7 @@ func (o *OrderBook) run() {
 			o.orderHash.remove(buyTop.Lookup)
 
 		} else if buy.Shares > sell.Shares {
-			o.sellQueue.Dequeue()
+			o.orderQueue.Dequeue("SELL" + ticker)
 			remainderBuy := buy.Shares - sell.Shares
 
 			o.handleTrade(sell.fill(price), sell.partialFill(price, remainderBuy))
@@ -105,7 +95,7 @@ func (o *OrderBook) run() {
 			o.orderHash.remove(sellTop.Lookup)
 		}
 
-		buyTop = o.buyQueue.Peek()
-		sellTop = o.sellQueue.Peek()
+		buyTop = o.orderQueue.Peek("BUY" + ticker)
+		sellTop = o.orderQueue.Peek("SELL" + ticker)
 	}
 }
