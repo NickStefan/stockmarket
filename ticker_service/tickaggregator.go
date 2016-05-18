@@ -8,12 +8,12 @@ import (
 )
 
 type Query struct {
-	TickerName   string
-	PeriodName   string
-	PeriodNumber int
-	Periods      int
-	StartDate    time.Time
-	EndDate      time.Time
+	TickerName   string    `json:"tickerName"`
+	PeriodName   string    `json:"periodName"`
+	PeriodNumber int       `json:"periodNumber"`
+	Periods      int       `json:"periods"`
+	StartDate    time.Time `json:"startDate"`
+	EndDate      time.Time `json:"endDate"`
 }
 
 func (q *Query) MatchGroupSortProject() (bson.M, bson.M, bson.M, bson.M) {

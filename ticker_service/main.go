@@ -124,20 +124,27 @@ func main() {
 	tickAggregator.setDB(mongoSession.DB("tickerdb"))
 	tickAggregator.setKV(minuteRedis)
 
-	//TODO
-	//TODO
-	//TODO
-	//TODO
-	//TODO
-	// handle post body parameters
-	// e.g. rest API
 	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
-		results := tickAggregator.query(Query{
-			TickerName:   "STOCK",
-			Periods:      20,
-			PeriodNumber: 1,
-			PeriodName:   "minute",
-		})
+		if "OPTIONS" == r.Method {
+			w.Header().Add("Access-Control-Allow-Origin", "http://localhost:8004")
+			w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+			w.Header().Add("Access-Control-Allow-Headers", "origin, content-type, accept")
+			w.Header().Add("Access-Control-Max-Age", "1000")
+			w.Header().Set("Status", "200")
+			w.Write([]byte("Status 200"))
+			return
+		}
+
+		var query Query
+		decoder := json.NewDecoder(r.Body)
+		defer r.Body.Close()
+
+		err := decoder.Decode(&query)
+		if err != nil {
+			fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
+		}
+
+		results := tickAggregator.query(query)
 
 		resultsJSON, err := json.Marshal(results)
 		if err != nil {

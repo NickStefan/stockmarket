@@ -17,7 +17,14 @@ async.auto({
         $.ajax({
             url:"http://localhost:8003/query",
             method: "POST",
-            data: {},
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            data: JSON.stringify({
+                tickerName: "STOCK",
+                periods: 50,
+                periodNumber: 1,
+                periodName: "minute"
+            }),
             success: function(data){
                 done(null, data);
             },
