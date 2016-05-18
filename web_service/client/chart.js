@@ -26,10 +26,9 @@ Chart.prototype.addData = function(data){
 
 Chart.prototype.addPeriod = function(){
     var lastPeriod = this._data[ this._data.length - 1];
-    var fakeTime = new Date(lastPeriod.date.getTime() + 1*60000);
 
     var newPeriod = {
-        date: new Date(), // fakeTime, // live data would just use new Date()
+        date: new Date(),
         high: lastPeriod.close,
         low: lastPeriod.close,
         open: lastPeriod.close,
@@ -86,6 +85,7 @@ Chart.prototype.draw = function(){
     var xExtent = fc.util.extent()
         .fields(["date"])
         .padUnit("domain")
+        .pad([this.periodMs, this.periodMs])
         //.pad([this.periodMs * -bollingerAlgorithm.windowSize()(this._data), this.periodMs])
         .include(this.getVisibleRange(this._data));
 

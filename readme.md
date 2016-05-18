@@ -9,18 +9,20 @@ _now in golang!_
 
 - [x] orderbook service  
   - [x] listen for http (for submitting of orders)  
+  - [ ] use redis ordered sets for buy and sell priority queues
   - [x] priotiy queues for buy and sell orders  
   - [x] dequeue priority queues into trades  
   - [x] message to ledger service  
   - [x] message to ticker service  
 
 
-- [ ] ticker service (chart and quote stream)  
+- [x] ticker service (chart and quote stream)  
+  - [x] use redis to for accumulating trades into tick data
   - [x] on price data http, update minute high, low, open, close, vol information  
   - [x] every 60 seconds, persist 1minute period tick data to DB  
   - [x] every 1 second, publish 1second period tick data to websockets
   - [?] deal with 0d out values in ticker values
-  - [ ] REST API for charts
+  - [x] API for charts
 
 - [ ] web service  
   - [x] serve front end javascript  
