@@ -41,6 +41,7 @@ func main() {
 	defer redisPool.Close()
 
 	orderBook := NewOrderBook(redisPool)
+
 	var mutex sync.Mutex
 
 	orderBook.setTradeHandler(func(t Trade, o Trade) {
