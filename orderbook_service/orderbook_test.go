@@ -185,7 +185,7 @@ func Test(t *testing.T) {
 				orderBook.run()
 
 				var lookup = orderBook.sellQueue.Peek().Lookup
-				var thing = orderBook.sellHash.get(lookup)
+				var thing = orderBook.orderHash.get(lookup)
 				g.Assert(thing.Shares).Equal(20)
 			})
 
