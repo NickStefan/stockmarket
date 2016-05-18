@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/garyburd/redigo/redis"
 	"github.com/nickstefan/market/orderbook_service/heap"
 )
 
@@ -17,14 +18,19 @@ type OrderBook struct {
 
 type tradehandler func(Trade, Trade)
 
-func NewOrderBook() *OrderBook {
+func NewOrderBook(pool *redis.Pool) *OrderBook {
 	return &OrderBook{
 		handleTrade: func(t Trade, o Trade) {},
-		buyHash:     NewOrderHash(),
-		sellHash:    NewOrderHash(),
+		buyHash:     NewOrderHash(pool, ""),
+		sellHash:    NewOrderHash(pool, ""),
 		buyQueue:    heap.Heap{Priority: "max"},
 		sellQueue:   heap.Heap{Priority: "min"},
 	}
+}
+
+func (o *OrderBook) setEnv(env string) {
+	o.buyHash.setEnv(env)
+	o.sellHash.setEnv(env)
 }
 
 func (o *OrderBook) setTradeHandler(execTrade tradehandler) {

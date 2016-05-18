@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/garyburd/redigo/redis"
 	"net/http"
 	"sync"
 )
@@ -24,7 +25,22 @@ func main() {
 	ledgerUrl := "http://127.0.0.1:8002/fill"
 	tickerUrl := "http://127.0.0.1:8003/trade"
 
-	orderBook := NewOrderBook()
+	redisAddress := ":6379"
+	maxConnections := 10
+
+	redisPool := redis.NewPool(func() (redis.Conn, error) {
+		c, err := redis.Dial("tcp", redisAddress)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return c, err
+	}, maxConnections)
+
+	defer redisPool.Close()
+
+	orderBook := NewOrderBook(redisPool)
 	var mutex sync.Mutex
 
 	orderBook.setTradeHandler(func(t Trade, o Trade) {
@@ -34,13 +50,6 @@ func main() {
 			fmt.Println("TODO: orderbook fault tolerance needed; ", err)
 		}
 
-		// TODO
-		// TODO
-		// TODO
-		// TODO
-		// TODO
-		// should put some logs here to test if ledger Post
-		// blocks the ticker post
 		ledgerResp, err := http.Post(ledgerUrl, "application/json", bytes.NewBuffer(trade))
 		if err != nil {
 			fmt.Println("TODO: orderbook fault tolerance needed; ", err)
