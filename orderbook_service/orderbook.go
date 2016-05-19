@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"github.com/nickstefan/market/orderbook_service/heap"
 )
@@ -35,7 +34,6 @@ func (o *OrderBook) setTradeHandler(execTrade tradehandler) {
 }
 
 func (o *OrderBook) add(order *Order) {
-	fmt.Println("order add", order.lookup())
 	o.orderHash.set(order.lookup(), order)
 	o.orderQueue.Enqueue(order.Intent+order.Ticker, &heap.Node{
 		Value:  order.price(),
@@ -67,7 +65,6 @@ func (o *OrderBook) run(ticker string) {
 
 	for buyTop != nil && sellTop != nil && buyTop.Value >= sellTop.Value {
 
-		fmt.Println("lookup", buyTop.Lookup, sellTop.Lookup)
 		buy := o.orderHash.get(buyTop.Lookup)
 		sell := o.orderHash.get(sellTop.Lookup)
 		price := o.negotiatePrice(buy, sell)

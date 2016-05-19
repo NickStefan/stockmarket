@@ -68,6 +68,7 @@ fi
 if [[ $1 == "kill" ]]; then
 
   # redis-cli shutdown ?
+  redis-cli flushdb
   pkill -x redis-server
 
   pkill -x mongod

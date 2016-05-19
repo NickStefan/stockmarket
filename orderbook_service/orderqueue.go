@@ -51,14 +51,17 @@ func (o *OrderQueue) Dequeue(queueName string) *heap.Node {
 		rankEnd = 0
 	}
 
+	conn.Send("MULTI")
+	conn.Send("ZRANGE", queueName, rankStart, rankEnd, "WITHSCORES")
+	conn.Send("ZREMRANGEBYRANK", queueName, rankStart, rankEnd)
+	values, err := redis.Values(conn.Do("EXEC"))
+
 	var lookup string
 	var score float64
-	values, err := redis.Values(conn.Do("ZREMRANGEBYRANK", queueName, rankStart, rankEnd, "WITHSCORES"))
-	if len(values) < 2 {
-		return nil
-	}
-	_, err = redis.Scan(values, &lookup, &score)
-
+	var zremRes int
+	var zrangeRes []interface{}
+	_, err = redis.Scan(values, &zrangeRes, &zremRes)
+	_, err = redis.Scan(zrangeRes, &lookup, &score)
 	if err != nil {
 		fmt.Println("orderbook_service: orderqueue dequeue ", err)
 		return nil
