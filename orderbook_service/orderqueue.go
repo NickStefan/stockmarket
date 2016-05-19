@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"github.com/nickstefan/market/orderbook_service/heap"
@@ -27,12 +26,10 @@ func (o *OrderQueue) Enqueue(queueName string, node *heap.Node) {
 	conn := o.pool.Get()
 	defer conn.Close()
 
-	//serialized, err := json.Marshal(node)
-	// read the ticker off the node, then do correct redis stuff
-	_, err := conn.Do("ZADD", queueName, node.Value, node.Lookup) // serialized)
+	_, err := conn.Do("ZADD", queueName, node.Value, node.Lookup)
 
 	if err != nil {
-		fmt.Println("TODO: orderbook_service fault tolerance needed; ", err)
+		fmt.Println("orderbook_service: orderqueue enqueue ", err)
 	}
 }
 
@@ -47,20 +44,30 @@ func (o *OrderQueue) Dequeue(queueName string) *heap.Node {
 	var rankStart int
 	var rankEnd int
 	if true == strings.HasPrefix(queueName, "BUY") {
-		rankStart = 0
-		rankEnd = 0
-	} else {
 		rankStart = -1
 		rankEnd = -1
+	} else {
+		rankStart = 0
+		rankEnd = 0
 	}
-	serialized, err := redis.Bytes(conn.Do("ZREMRANGEBYRANK", queueName, rankStart, rankEnd))
 
-	var node *heap.Node
-	err = json.Unmarshal(serialized, &node)
-	if err != nil {
-		fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
+	var lookup string
+	var score float64
+	values, err := redis.Values(conn.Do("ZREMRANGEBYRANK", queueName, rankStart, rankEnd, "WITHSCORES"))
+	if len(values) < 2 {
+		return nil
 	}
-	return node
+	_, err = redis.Scan(values, &lookup, &score)
+
+	if err != nil {
+		fmt.Println("orderbook_service: orderqueue dequeue ", err)
+		return nil
+	}
+
+	return &heap.Node{
+		Lookup: lookup,
+		Value:  score,
+	}
 }
 
 func (o *OrderQueue) Peek(queueName string) *heap.Node {
@@ -74,32 +81,34 @@ func (o *OrderQueue) Peek(queueName string) *heap.Node {
 	var rankStart int
 	var rankEnd int
 	if true == strings.HasPrefix(queueName, "BUY") {
-		rankStart = 0
-		rankEnd = 0
-	} else {
 		rankStart = -1
 		rankEnd = -1
+	} else {
+		rankStart = 0
+		rankEnd = 0
 	}
-	serialized, err := redis.Bytes(conn.Do("ZRANGEBYRANK", queueName, rankStart, rankEnd))
 
-	var node *heap.Node
-	err = json.Unmarshal(serialized, &node)
-	if err != nil {
-		fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
+	var lookup string
+	var score float64
+	values, err := redis.Values(conn.Do("ZRANGE", queueName, rankStart, rankEnd, "WITHSCORES"))
+	if len(values) < 2 {
+		return nil
 	}
-	return node
+	_, err = redis.Scan(values, &lookup, &score)
+
+	if err != nil {
+		fmt.Println("orderbook_service: orderqueue peek", err)
+		return nil
+	}
+
+	return &heap.Node{
+		Lookup: lookup,
+		Value:  score,
+	}
 }
 
 func (o *OrderQueue) remove(key string) {
-	//if o.env == "TESTING" {
-	//delete(o.data, key)
-	//return
-	//}
 
-	//conn := o.pool.Get()
-	//defer conn.Close()
-
-	//conn.Do("DEL", o.prefix+key)
 }
 
 func NewOrderQueue(pool *redis.Pool) *OrderQueue {

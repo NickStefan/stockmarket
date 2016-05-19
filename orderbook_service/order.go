@@ -66,25 +66,3 @@ func (o *Order) price() float64 {
 	// should never get here
 	return 1000000.00
 }
-
-//type OrderHash struct {
-//data map[string]*Order
-//}
-
-//func (o *OrderHash) get(key string) *Order {
-//return o.data[key]
-//}
-
-//func (o *OrderHash) set(key string, order *Order) {
-//o.data[key] = order
-//}
-
-//func (o *OrderHash) remove(key string) {
-//delete(o.data, key)
-//}
-
-//func NewOrderHash() *OrderHash {
-//return &OrderHash{
-//data: make(map[string]*Order),
-//}
-//}

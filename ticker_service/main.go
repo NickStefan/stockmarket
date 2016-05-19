@@ -54,7 +54,7 @@ func main() {
 	// db.tickerdb.ticks.ensureIndex({'date': 1 })'}
 	err = mongoSession.DB("tickerdb").DropDatabase()
 	if err != nil {
-		fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
+		fmt.Println("ticker_service: mongodb ", err)
 	}
 	defer mongoSession.Close()
 
@@ -81,12 +81,12 @@ func main() {
 			Version: "1",
 		})
 		if err != nil {
-			fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
+			fmt.Println("ticker_service: publisher ", err)
 		}
 
 		messageResp, err := http.Post(messageUrl+tickPeriod.Ticker, "application/json", bytes.NewBuffer(tick))
 		if err != nil {
-			fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
+			fmt.Println("ticker_service: publisher ", err)
 		}
 		defer messageResp.Body.Close()
 	}
@@ -109,7 +109,7 @@ func main() {
 		defer r.Body.Close()
 		err := decoder.Decode(&payload)
 		if err != nil {
-			fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
+			fmt.Println("ticker_service: handle trade ", err)
 		}
 
 		minuteManager.add(payload[0])
@@ -141,7 +141,7 @@ func main() {
 
 		err := decoder.Decode(&query)
 		if err != nil {
-			fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
+			fmt.Println("ticker_service: query handler", err)
 		}
 
 		results := tickAggregator.query(query)

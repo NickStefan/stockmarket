@@ -91,7 +91,7 @@ func (m *PeriodManager) persist(l []interface{}) {
 	c := m.db.C("ticks")
 	err := c.Insert(l...)
 	if err != nil {
-		fmt.Println("TODO: fault tolerance needed; ", err)
+		fmt.Println("ticker_service: periodmanager mongodb", err)
 	}
 }
 

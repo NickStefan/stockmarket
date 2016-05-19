@@ -30,7 +30,7 @@ func (o *PeriodHash) get(key string) *Period {
 	var period *Period
 	err = json.Unmarshal(serialized, &period)
 	if err != nil {
-		fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
+		fmt.Println("ticker_service: periodhash get ", err)
 	}
 	if o.prefix == "minute" {
 		//fmt.Println("get", period)
@@ -53,7 +53,7 @@ func (o *PeriodHash) set(key string, period *Period) {
 		//fmt.Println("res", res)
 	}
 	if err != nil {
-		fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
+		fmt.Println("ticker_service: periodhash set", err)
 	}
 }
 

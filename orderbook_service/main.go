@@ -48,18 +48,18 @@ func main() {
 		// fmt.Println("\n TRADE", t.Price, "\n")
 		trade, err := json.Marshal([2]Trade{t, o})
 		if err != nil {
-			fmt.Println("TODO: orderbook fault tolerance needed; ", err)
+			fmt.Println("orderbook_service: trade serialize http ", err)
 		}
 
 		ledgerResp, err := http.Post(ledgerUrl, "application/json", bytes.NewBuffer(trade))
 		if err != nil {
-			fmt.Println("TODO: orderbook fault tolerance needed; ", err)
+			fmt.Println("orderbook_service: trade handler http ", err)
 		}
 		defer ledgerResp.Body.Close()
 
 		tickerResp, err := http.Post(tickerUrl, "application/json", bytes.NewBuffer(trade))
 		if err != nil {
-			fmt.Println("TODO: orderbook fault tolerance needed; ", err)
+			fmt.Println("orderbook_service: trade handler http ", err)
 		}
 		defer tickerResp.Body.Close()
 	})
@@ -73,7 +73,7 @@ func main() {
 		defer r.Body.Close()
 		err := decoder.Decode(&payload)
 		if err != nil {
-			fmt.Println("TODO: orderbook fault tolerance needed; ", err)
+			fmt.Println("orderbook_service: order handler http ", err)
 		}
 
 		mutex.Lock()

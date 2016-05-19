@@ -30,7 +30,7 @@ func (o *OrderHash) get(key string) *Order {
 	var order *Order
 	err = json.Unmarshal(serialized, &order)
 	if err != nil {
-		fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
+		fmt.Println("orderbook_service: orderhash get ", err)
 	}
 	if o.prefix == "minute" {
 		//fmt.Println("get", order)
@@ -53,7 +53,7 @@ func (o *OrderHash) set(key string, order *Order) {
 		//fmt.Println("res", res)
 	}
 	if err != nil {
-		fmt.Println("TODO: ticker_service fault tolerance needed; ", err)
+		fmt.Println("orderbook_service: orderhash set ", err)
 	}
 }
 
