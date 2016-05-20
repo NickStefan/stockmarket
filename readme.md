@@ -5,11 +5,14 @@ _now in golang!_
 ### TODO
 - [x] ledger service  
   - [x] listen for http (from orderbook)  
+  - [ ] use django and mysql for auth, accounts and assets
   - [x] track quantity and asset for each user (cash is an asset)  
 
 - [x] orderbook service  
   - [x] listen for http (for submitting of orders)  
-  - [ ] use redis ordered sets for buy and sell priority queues
+  - [x] redlock on orderbook ticker keys
+  - [ ] containerize, load balance
+  - [x] use redis ordered sets for buy and sell priority queues
   - [x] priotiy queues for buy and sell orders  
   - [x] dequeue priority queues into trades  
   - [x] message to ledger service  
@@ -17,6 +20,7 @@ _now in golang!_
 
 
 - [x] ticker service (chart and quote stream)  
+  - [ ] redlock on second and minute ticker keys
   - [x] use redis to for accumulating trades into tick data
   - [x] on price data http, update minute high, low, open, close, vol information  
   - [x] every 60 seconds, persist 1minute period tick data to DB  

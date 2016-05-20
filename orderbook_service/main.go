@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
+	"gopkg.in/redsync.v1"
 	"net/http"
 	"sync"
 )
@@ -44,6 +45,8 @@ func main() {
 
 	var mutex sync.Mutex
 
+	redisLock := redsync.New([]redsync.Pool{redisPool})
+
 	orderBook.setTradeHandler(func(t Trade, o Trade) {
 		// fmt.Println("\n TRADE", t.Price, "\n")
 		trade, err := json.Marshal([2]Trade{t, o})
@@ -66,6 +69,7 @@ func main() {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		var payload struct {
+			Ticker string   `json:"ticker"`
 			Orders []*Order `json:"orders"`
 		}
 
@@ -76,13 +80,22 @@ func main() {
 			fmt.Println("orderbook_service: order handler http ", err)
 		}
 
+		// LOCKING
 		mutex.Lock()
 		defer mutex.Unlock()
+		// do we need BOTH the mutex AND the redlock???
+		rMutex := redisLock.NewMutex(payload.Ticker)
+		err = rMutex.Lock()
+		if err != nil {
+			panic(err)
+		}
+		defer rMutex.Unlock()
+		// END LOCKING
+
 		for _, order := range payload.Orders {
-			// fmt.Println(order.Intent, "ORDER", order.price())
 			orderBook.add(order)
 		}
-		orderBook.run("STOCK")
+		orderBook.run(payload.Ticker)
 
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))
