@@ -27,7 +27,9 @@ func TestPeriodManager(t *testing.T) {
 			periodHash := NewPeriodHash(redisPool, "")
 			periodHash.setEnv("TESTING")
 
-			periodManager := NewPeriodManager([]string{"STOCK"}, periodHash)
+			periodManager := NewPeriodManager(redisPool, periodHash, "")
+			periodManager.setEnv("TESTING")
+			periodManager.initRedisStructs([]string{"STOCK"})
 
 			periodManager.add(Trade{
 				Shares: 150, Ticker: "STOCK", Price: 10.50,

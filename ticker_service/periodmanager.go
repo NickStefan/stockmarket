@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/garyburd/redigo/redis"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/redsync.v1"
 	"sync"
 	"time"
 )
@@ -18,21 +20,22 @@ type Period struct {
 }
 
 type PeriodManager struct {
+	env       string
+	period    string
 	tickers   []string
 	hash      *PeriodHash
 	db        *mgo.Database
 	publisher func(*Period)
-	sync.RWMutex
+	redsync   *redsync.Redsync
+	lockMap   map[string]*Locker
 }
 
-func NewPeriodManager(tickers []string, hash *PeriodHash) *PeriodManager {
-	for _, ticker := range tickers {
-		hash.set(ticker, &Period{Ticker: ticker, Date: time.Now()})
-	}
-
+func NewPeriodManager(pool *redis.Pool, hash *PeriodHash, period string) *PeriodManager {
 	return &PeriodManager{
+		period:  period,
+		lockMap: make(map[string]*Locker),
+		redsync: redsync.New([]redsync.Pool{pool}),
 		hash:    hash,
-		tickers: tickers,
 	}
 }
 
@@ -44,9 +47,43 @@ func (m *PeriodManager) setPublisher(p func(*Period)) {
 	m.publisher = p
 }
 
-func (m *PeriodManager) add(t Trade) {
-	m.Lock()
-	defer m.Unlock()
+func (m *PeriodManager) setEnv(env string) {
+	m.env = env
+}
+
+func (m *PeriodManager) initRedisStructs(tickers []string) error {
+	for _, ticker := range tickers {
+		locker := m.getLocker(ticker)
+		err := locker.Lock()
+		if err != nil {
+			return err
+		}
+		m.hash.set(ticker, &Period{Ticker: ticker, Date: time.Now()})
+		locker.Unlock()
+	}
+	return nil
+}
+
+func (m *PeriodManager) getLocker(ticker string) *Locker {
+	if nil != m.lockMap[ticker] {
+		return m.lockMap[ticker]
+	} else {
+		m.lockMap[ticker] = &Locker{
+			env:     m.env,
+			mutLock: &sync.Mutex{},
+			redLock: m.redsync.NewMutex("ticker_service" + m.period + ticker),
+		}
+		return m.lockMap[ticker]
+	}
+}
+
+func (m *PeriodManager) add(t Trade) error {
+	locker := m.getLocker(t.Ticker)
+	err := locker.Lock()
+	if err != nil {
+		return err
+	}
+	defer locker.Unlock()
 
 	period := m.hash.get(t.Ticker)
 
@@ -69,21 +106,27 @@ func (m *PeriodManager) add(t Trade) {
 	period.Close = t.Price
 
 	m.hash.set(t.Ticker, period)
+	return nil
 }
 
-func (m *PeriodManager) Persist() {
-	m.RLock()
-	defer m.RUnlock()
+func (m *PeriodManager) Persist() error {
 
 	periods := make([]interface{}, 0)
 
 	for _, ticker := range m.tickers {
+		locker := m.getLocker(ticker)
+		err := locker.Lock()
+		if err != nil {
+			return err
+		}
 		periods = append(periods, m.hash.get(ticker))
 		// reset hash
 		m.hash.set(ticker, &Period{Ticker: ticker, Date: time.Now()})
+		locker.Unlock()
 	}
 
 	m.persist(periods)
+	return nil
 }
 
 func (m *PeriodManager) persist(l []interface{}) {
@@ -91,19 +134,23 @@ func (m *PeriodManager) persist(l []interface{}) {
 	c := m.db.C("ticks")
 	err := c.Insert(l...)
 	if err != nil {
-		fmt.Println("ticker_service: periodmanager mongodb", err)
+		fmt.Println("ticker_service: periodmanager mongodb", err, l)
 	}
 }
 
-func (m *PeriodManager) Publish() {
-	m.RLock()
-	defer m.RUnlock()
-
+func (m *PeriodManager) Publish() error {
 	for _, ticker := range m.tickers {
+		locker := m.getLocker(ticker)
+		err := locker.Lock()
+		if err != nil {
+			return err
+		}
 		m.publish(m.hash.get(ticker))
 		// reset hash
 		m.hash.set(ticker, &Period{Ticker: ticker, Date: time.Now()})
+		locker.Unlock()
 	}
+	return nil
 }
 
 func (m *PeriodManager) publish(tickPeriod *Period) {

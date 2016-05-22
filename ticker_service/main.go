@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"gopkg.in/mgo.v2"
-	"gopkg.in/redsync.v1"
 	"net/http"
 	"time"
 )
@@ -22,7 +21,7 @@ type Trade struct {
 	Time   int64   `json:"time"`
 }
 
-func schedule(f func(), delaySeconds time.Duration) chan struct{} {
+func schedule(f func() error, delaySeconds time.Duration) chan struct{} {
 	ticker := time.NewTicker(delaySeconds * time.Second)
 
 	quit := make(chan struct{})
@@ -61,17 +60,13 @@ func main() {
 
 	redisPool := redis.NewPool(func() (redis.Conn, error) {
 		c, err := redis.Dial("tcp", redisAddress)
-
 		if err != nil {
 			return nil, err
 		}
-
 		return c, err
 	}, maxConnections)
 
 	defer redisPool.Close()
-
-	redisLock := redsync.New([]redsync.Pool{redisPool})
 
 	publisher := func(tickPeriod *Period) {
 		tick, err := json.Marshal(struct {
@@ -97,14 +92,24 @@ func main() {
 	tickers := []string{"STOCK"}
 
 	minuteRedis := NewPeriodHash(redisPool, "minute")
-	minuteManager := NewPeriodManager(tickers, minuteRedis)
-	minuteManager.setDB(mongoSession.DB("tickerdb"))
-	schedule(minuteManager.Persist, 60)
+	minuteManager := NewPeriodManager(redisPool, minuteRedis, "minute")
 
 	secondRedis := NewPeriodHash(redisPool, "second")
-	secondManager := NewPeriodManager(tickers, secondRedis)
+	secondManager := NewPeriodManager(redisPool, secondRedis, "second")
+
+	// TODO do this only if this server elected leader
+	// if leader
+	secondManager.initRedisStructs(tickers)
 	secondManager.setPublisher(publisher)
+	minuteManager.initRedisStructs(tickers)
+	minuteManager.setDB(mongoSession.DB("tickerdb"))
+	schedule(minuteManager.Persist, 60)
 	schedule(secondManager.Publish, 1)
+	// end if leader
+
+	// TODO if unelect as leader
+	// remove schedules
+	// schedules return a chan that can be sent a quit message
 
 	http.HandleFunc("/trade", func(w http.ResponseWriter, r *http.Request) {
 		var payload [2]Trade
@@ -115,13 +120,7 @@ func main() {
 			fmt.Println("ticker_service: handle trade ", err)
 		}
 
-		rMutex := redisLock.NewMutex("ticker_service" + payload[0].Ticker)
-		err = rMutex.Lock()
-		if err != nil {
-			fmt.Println(err)
-		}
-		defer rMutex.Unlock()
-
+		// should error handle here
 		minuteManager.add(payload[0])
 		secondManager.add(payload[0])
 
@@ -154,6 +153,7 @@ func main() {
 			fmt.Println("ticker_service: query handler", err)
 		}
 
+		// should be error var here and http error if so
 		results := tickAggregator.query(query)
 
 		resultsJSON, err := json.Marshal(results)
