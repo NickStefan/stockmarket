@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/garyburd/redigo/redis"
 	"github.com/rafaeljusto/redigomock"
+	"strings"
 	"testing"
 	"time"
 	// "fmt"
@@ -83,8 +84,8 @@ func Test(t *testing.T) {
 			})
 
 			g.Describe("lookup method", func() {
-				g.It("should equal actor + createtime", func() {
-					g.Assert(orders[0].lookup()[:3]).Equal("Bob")
+				g.It("should equal createtime + actor", func() {
+					g.Assert(strings.HasSuffix(orders[0].lookup(), "Bob")).Equal(true)
 				})
 			})
 

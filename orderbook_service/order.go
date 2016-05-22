@@ -27,7 +27,7 @@ type Order struct {
 }
 
 func (o *Order) lookup() string {
-	return o.Actor + strconv.FormatInt(o.Timecreated, 10)
+	return strconv.FormatInt(o.Timecreated, 10) + o.Actor
 }
 
 func (o *Order) partialFill(price float64, newShares int) Trade {
