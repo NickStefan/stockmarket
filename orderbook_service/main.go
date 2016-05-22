@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
-	"gopkg.in/redsync.v1"
 	"net/http"
-	"sync"
 )
 
 type Trade struct {
@@ -21,6 +19,11 @@ type Trade struct {
 	Time   int64   `json:"time"`
 }
 
+type Payload struct {
+	Ticker string   `json:"ticker"`
+	Orders []*Order `json:"orders"`
+}
+
 func main() {
 
 	ledgerUrl := "http://127.0.0.1:8002/fill"
@@ -31,11 +34,9 @@ func main() {
 
 	redisPool := redis.NewPool(func() (redis.Conn, error) {
 		c, err := redis.Dial("tcp", redisAddress)
-
 		if err != nil {
 			return nil, err
 		}
-
 		return c, err
 	}, maxConnections)
 
@@ -43,12 +44,7 @@ func main() {
 
 	orderBook := NewOrderBook(redisPool)
 
-	var mutex sync.Mutex
-
-	redisLock := redsync.New([]redsync.Pool{redisPool})
-
 	orderBook.setTradeHandler(func(t Trade, o Trade) {
-		// fmt.Println("\n TRADE", t.Price, "\n")
 		trade, err := json.Marshal([2]Trade{t, o})
 		if err != nil {
 			fmt.Println("orderbook_service: trade serialize http ", err)
@@ -67,35 +63,27 @@ func main() {
 		defer tickerResp.Body.Close()
 	})
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		var payload struct {
-			Ticker string   `json:"ticker"`
-			Orders []*Order `json:"orders"`
-		}
+	http.HandleFunc("/order", func(w http.ResponseWriter, r *http.Request) {
+
+		var payload Payload
 
 		decoder := json.NewDecoder(r.Body)
 		defer r.Body.Close()
 		err := decoder.Decode(&payload)
 		if err != nil {
 			fmt.Println("orderbook_service: order handler http ", err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Status 400"))
+			return
 		}
 
-		// LOCKING
-		mutex.Lock()
-		defer mutex.Unlock()
-		// do we need BOTH the mutex AND the redlock???
-		rMutex := redisLock.NewMutex(payload.Ticker)
-		err = rMutex.Lock()
+		err = orderBook.Add(payload)
 		if err != nil {
-			panic(err)
+			fmt.Println("orderbook_service: orderbook Add  ", err)
+			w.WriteHeader(http.StatusRequestTimeout)
+			w.Write([]byte("Status 408"))
+			return
 		}
-		defer rMutex.Unlock()
-		// END LOCKING
-
-		for _, order := range payload.Orders {
-			orderBook.add(order)
-		}
-		orderBook.run(payload.Ticker)
 
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/redsync.v1"
 	"net/http"
 	"time"
 )
@@ -70,6 +71,8 @@ func main() {
 
 	defer redisPool.Close()
 
+	redisLock := redsync.New([]redsync.Pool{redisPool})
+
 	publisher := func(tickPeriod *Period) {
 		tick, err := json.Marshal(struct {
 			Payload *Period `json:"payload"`
@@ -111,6 +114,13 @@ func main() {
 		if err != nil {
 			fmt.Println("ticker_service: handle trade ", err)
 		}
+
+		rMutex := redisLock.NewMutex("ticker_service" + payload[0].Ticker)
+		err = rMutex.Lock()
+		if err != nil {
+			fmt.Println(err)
+		}
+		defer rMutex.Unlock()
 
 		minuteManager.add(payload[0])
 		secondManager.add(payload[0])

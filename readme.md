@@ -20,7 +20,8 @@ _now in golang!_
 
 
 - [x] ticker service (chart and quote stream)  
-  - [ ] redlock on second and minute ticker keys
+  - [x] redlock on second and minute ticker keys
+  - [ ] containerize and load balance, need leader elect for ticker
   - [x] use redis to for accumulating trades into tick data
   - [x] on price data http, update minute high, low, open, close, vol information  
   - [x] every 60 seconds, persist 1minute period tick data to DB  

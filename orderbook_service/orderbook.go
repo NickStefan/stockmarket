@@ -3,11 +3,13 @@ package main
 import (
 	"github.com/garyburd/redigo/redis"
 	"github.com/nickstefan/market/orderbook_service/heap"
+	"gopkg.in/redsync.v1"
+	"sync"
 )
 
-// how does a stock market organize the orders? Depth of Market or OrderBook
-
 type OrderBook struct {
+	lockMap     map[string]*Locker
+	redsync     *redsync.Redsync
 	lastPrice   float64
 	handleTrade tradehandler
 	orderQueue  *OrderQueue
@@ -18,6 +20,8 @@ type tradehandler func(Trade, Trade)
 
 func NewOrderBook(pool *redis.Pool) *OrderBook {
 	return &OrderBook{
+		lockMap:     make(map[string]*Locker),
+		redsync:     redsync.New([]redsync.Pool{pool}),
 		handleTrade: func(t Trade, o Trade) {},
 		orderHash:   NewOrderHash(pool, ""),
 		orderQueue:  NewOrderQueue(pool),
@@ -31,6 +35,33 @@ func (o *OrderBook) setEnv(env string) {
 
 func (o *OrderBook) setTradeHandler(execTrade tradehandler) {
 	o.handleTrade = execTrade
+}
+
+func (o *OrderBook) getLocker(ticker string) *Locker {
+	if nil != o.lockMap[ticker] {
+		return o.lockMap[ticker]
+	} else {
+		o.lockMap[ticker] = &Locker{
+			mutLock: &sync.Mutex{},
+			redLock: o.redsync.NewMutex("orderbook_service" + ticker),
+		}
+		return o.lockMap[ticker]
+	}
+}
+
+func (o *OrderBook) Add(payload Payload) error {
+	locker := o.getLocker(payload.Ticker)
+	err := locker.Lock()
+	if err != nil {
+		return err
+	}
+	defer locker.Unlock()
+
+	for _, order := range payload.Orders {
+		o.add(order)
+	}
+	o.run(payload.Ticker)
+	return nil
 }
 
 func (o *OrderBook) add(order *Order) {
