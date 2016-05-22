@@ -5,6 +5,7 @@ import (
 	"github.com/nickstefan/market/orderbook_service/heap"
 	"gopkg.in/redsync.v1"
 	"sync"
+	"time"
 )
 
 type OrderBook struct {
@@ -41,9 +42,14 @@ func (o *OrderBook) getLocker(ticker string) *Locker {
 	if nil != o.lockMap[ticker] {
 		return o.lockMap[ticker]
 	} else {
+		redLockMutex := o.redsync.NewMutex("orderbook_service" + ticker)
+		redsync.SetRetryDelay(1 * time.Millisecond).Apply(redLockMutex)
+		redsync.SetExpiry(16 * time.Millisecond).Apply(redLockMutex)
+		redsync.SetTries(32).Apply(redLockMutex)
+
 		o.lockMap[ticker] = &Locker{
 			mutLock: &sync.Mutex{},
-			redLock: o.redsync.NewMutex("orderbook_service" + ticker),
+			redLock: redLockMutex,
 		}
 		return o.lockMap[ticker]
 	}

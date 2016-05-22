@@ -74,10 +74,15 @@ func (m *PeriodManager) getLocker(ticker string) *Locker {
 	if nil != m.lockMap[ticker] {
 		return m.lockMap[ticker]
 	} else {
+		redLockMutex := m.redsync.NewMutex("ticker_service" + m.period + ticker)
+		redsync.SetRetryDelay(1 * time.Millisecond).Apply(redLockMutex)
+		redsync.SetExpiry(16 * time.Millisecond).Apply(redLockMutex)
+		redsync.SetTries(32).Apply(redLockMutex)
+
 		m.lockMap[ticker] = &Locker{
 			env:     m.env,
 			mutLock: &sync.Mutex{},
-			redLock: m.redsync.NewMutex("ticker_service" + m.period + ticker),
+			redLock: redLockMutex,
 		}
 		return m.lockMap[ticker]
 	}
@@ -119,7 +124,6 @@ func (m *PeriodManager) Persist() error {
 
 	periods := make([]interface{}, 0)
 
-	fmt.Println("tickers", m.tickers)
 	for _, ticker := range m.tickers {
 		locker := m.getLocker(ticker)
 		err := locker.Lock()
