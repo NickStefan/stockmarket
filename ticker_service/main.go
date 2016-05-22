@@ -155,9 +155,7 @@ func main() {
 			fmt.Println("ticker_service: query handler", err)
 		}
 
-		// should be error var here and http error if so
-		results := tickAggregator.query(query)
-
+		results, err := tickAggregator.query(query)
 		resultsJSON, err := json.Marshal(results)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

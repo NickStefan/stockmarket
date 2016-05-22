@@ -295,7 +295,7 @@ func (t *TickAggregator) currentTicker(ticker string) *Period {
 	return t.hash.get(ticker)
 }
 
-func (t *TickAggregator) query(q Query) []interface{} {
+func (t *TickAggregator) query(q Query) ([]interface{}, error) {
 	match, group, sort, project := q.MatchGroupSortProject()
 
 	c := t.db.C("ticks")
@@ -311,6 +311,7 @@ func (t *TickAggregator) query(q Query) []interface{} {
 	err := pipe.All(&results)
 	if err != nil {
 		fmt.Println("TODO: fault tolerance needed; ", err)
+		return nil, err
 	}
 
 	// ADD REDIS PERIOD IF IN QUERY
@@ -327,5 +328,5 @@ func (t *TickAggregator) query(q Query) []interface{} {
 	if len(results) > q.Periods {
 		limitStart = len(results) - q.Periods
 	}
-	return results[limitStart:]
+	return results[limitStart:], nil
 }
