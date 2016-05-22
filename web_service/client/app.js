@@ -53,39 +53,52 @@ async.auto({
     }],
     sockets: ['chart', function(done, results){
         if (window.WebSocket){
-            socket = new WebSocket("ws://localhost:8004/ws");
+            var retry;
+            var socket;
+            function connectChart(chart){
+                socket = new WebSocket("ws://localhost:8004/ws");
 
-            socket.onopen = function(e){
-                var msg = JSON.stringify({
-                    user_id: 'userNick',
-                    tickers: ['STOCK']
-                });
-                socket.send(msg);
-            };
-
-            socket.onmessage = function(e){
-                console.log(e.data);
-                var msg = JSON.parse(e.data);
-
-                switch (msg.api){
-                    case 'ticker':
-                        if (!msg.payload.volume){
-                        return;
+                socket.onopen = function(e){
+                    console.log("connected...");
+                    if (retry){
+                        clearInterval(retry);
                     }
-                    results.chart.addPartialData(msg.payload);
-                    results.chart.draw();
-                    break;
-                default:
-                    break;
-                }
-            };
 
-            socket.onclose = function(e){
-                console.log("connection closed");
-            };
+                    var msg = JSON.stringify({
+                        user_id: 'userNick',
+                        tickers: ['STOCK']
+                    });
+                    socket.send(msg);
+                };
+
+                socket.onmessage = function(e){
+                    console.log(e.data);
+                    var msg = JSON.parse(e.data);
+
+                    switch (msg.api){
+                        case 'ticker':
+                            if (!msg.payload.volume){
+                            return;
+                        }
+                        chart.addPartialData(msg.payload);
+                        chart.draw();
+                        break;
+                    default:
+                        break;
+                    }
+                };
+
+                socket.onclose = function(e){
+                    console.log("connection closed");
+                    retry = setInterval(function(){
+                        connectChart(chart);
+                    }, 10000);
+                };
+            }
+            connectChart(results.chart);
         }
         done(null);
     }]
 }, function(err, results){
-    
+
 });
