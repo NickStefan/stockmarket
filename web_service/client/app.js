@@ -53,17 +53,11 @@ async.auto({
     }],
     sockets: ['chart', function(done, results){
         if (window.WebSocket){
-            var retry;
-            var socket;
             function connectChart(chart){
-                socket = new WebSocket("ws://localhost:8004/ws");
+                var socket = new WebSocket("ws://localhost:8004/ws");
 
                 socket.onopen = function(e){
-                    console.log("connected...");
-                    if (retry){
-                        clearInterval(retry);
-                    }
-
+                    console.log("connected");
                     var msg = JSON.stringify({
                         user_id: 'userNick',
                         tickers: ['STOCK']
@@ -90,9 +84,10 @@ async.auto({
 
                 socket.onclose = function(e){
                     console.log("connection closed");
-                    retry = setInterval(function(){
+                    setTimeout(function(){
+                        console.log("retrying...");
                         connectChart(chart);
-                    }, 10000);
+                    }, 10*1000);
                 };
             }
             connectChart(results.chart);

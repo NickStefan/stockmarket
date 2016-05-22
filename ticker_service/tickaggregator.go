@@ -264,8 +264,8 @@ func (q *Query) MatchGroupSortProject() (bson.M, bson.M, bson.M, bson.M) {
 		"volume":   "$volume",
 	}}
 
-	fmt.Println("startDate", startDate)
-	fmt.Println("endDate", endDate)
+	//fmt.Println("startDate", startDate)
+	//fmt.Println("endDate", endDate)
 
 	match = bson.M{"$match": bson.M{
 		"ticker": q.TickerName,
