@@ -26,6 +26,9 @@ func (o *OrderHash) get(key string) *Order {
 	defer conn.Close()
 
 	serialized, err := redis.Bytes(conn.Do("GET", o.prefix+key))
+	if len(serialized) == 0 {
+		return nil
+	}
 
 	var order *Order
 	err = json.Unmarshal(serialized, &order)

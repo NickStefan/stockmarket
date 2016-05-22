@@ -51,14 +51,20 @@ func (m *PeriodManager) setEnv(env string) {
 	m.env = env
 }
 
-func (m *PeriodManager) initRedisStructs(tickers []string) error {
-	for _, ticker := range tickers {
+func (m *PeriodManager) setTickers(tickers []string) {
+	m.tickers = tickers
+}
+
+func (m *PeriodManager) initPeriods() error {
+	for _, ticker := range m.tickers {
 		locker := m.getLocker(ticker)
 		err := locker.Lock()
 		if err != nil {
 			return err
 		}
-		m.hash.set(ticker, &Period{Ticker: ticker, Date: time.Now()})
+		if nil == m.hash.get(ticker) {
+			m.hash.set(ticker, &Period{Ticker: ticker, Date: time.Now()})
+		}
 		locker.Unlock()
 	}
 	return nil
@@ -113,6 +119,7 @@ func (m *PeriodManager) Persist() error {
 
 	periods := make([]interface{}, 0)
 
+	fmt.Println("tickers", m.tickers)
 	for _, ticker := range m.tickers {
 		locker := m.getLocker(ticker)
 		err := locker.Lock()

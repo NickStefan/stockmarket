@@ -93,16 +93,18 @@ func main() {
 
 	minuteRedis := NewPeriodHash(redisPool, "minute")
 	minuteManager := NewPeriodManager(redisPool, minuteRedis, "minute")
+	minuteManager.setTickers(tickers)
+	minuteManager.initPeriods()
+	minuteManager.setDB(mongoSession.DB("tickerdb"))
 
 	secondRedis := NewPeriodHash(redisPool, "second")
 	secondManager := NewPeriodManager(redisPool, secondRedis, "second")
+	secondManager.setTickers(tickers)
+	secondManager.initPeriods()
+	secondManager.setPublisher(publisher)
 
 	// TODO do this only if this server elected leader
 	// if leader
-	secondManager.initRedisStructs(tickers)
-	secondManager.setPublisher(publisher)
-	minuteManager.initRedisStructs(tickers)
-	minuteManager.setDB(mongoSession.DB("tickerdb"))
 	schedule(minuteManager.Persist, 60)
 	schedule(secondManager.Publish, 1)
 	// end if leader

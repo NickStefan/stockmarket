@@ -26,14 +26,14 @@ func (o *PeriodHash) get(key string) *Period {
 	defer conn.Close()
 
 	serialized, err := redis.Bytes(conn.Do("GET", o.prefix+key))
+	if len(serialized) == 0 {
+		return nil
+	}
 
 	var period *Period
 	err = json.Unmarshal(serialized, &period)
 	if err != nil {
 		fmt.Println("ticker_service: periodhash get ", err)
-	}
-	if o.prefix == "minute" {
-		//fmt.Println("get", period)
 	}
 	return period
 }
@@ -49,9 +49,6 @@ func (o *PeriodHash) set(key string, period *Period) {
 
 	serialized, err := json.Marshal(period)
 	_, err = conn.Do("SET", o.prefix+key, serialized)
-	if o.prefix == "minute" {
-		//fmt.Println("res", res)
-	}
 	if err != nil {
 		fmt.Println("ticker_service: periodhash set", err)
 	}
