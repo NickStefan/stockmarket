@@ -1,12 +1,14 @@
 FROM node:6.2.0
 
-EXPOSE 8004
+WORKDIR /usr/src
+
+# copy package.json separately from code to optimize build cache for npm install
+COPY package.json /usr/src
+RUN npm install
 
 COPY . /usr/src
 
-WORKDIR /usr/src
-
-RUN npm install
+EXPOSE 8004
 
 CMD ["node", "./server/app.js"]
 

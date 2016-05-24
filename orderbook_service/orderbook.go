@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"github.com/nickstefan/market/orderbook_service/heap"
 	"gopkg.in/redsync.v1"
@@ -59,6 +60,7 @@ func (o *OrderBook) Add(payload Payload) error {
 	locker := o.getLocker(payload.Ticker)
 	err := locker.Lock()
 	if err != nil {
+		fmt.Println("inside Add", err)
 		return err
 	}
 	defer locker.Unlock()

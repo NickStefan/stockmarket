@@ -43,16 +43,19 @@ func schedule(f func() error, delaySeconds time.Duration) chan struct{} {
 }
 
 func main() {
-	messageUrl := "http://127.0.0.1:8004/msg/ticker/"
+	messageUrl := "http://web:8004/msg/ticker/"
 
-	redisAddress := ":6379"
+	redisAddress := "redis:6379"
 	maxConnections := 10
 
-	mongoAddress := "mongodb://localhost"
+	mongoAddress := "192.168.99.100:27017"
 
 	mongoSession, err := mgo.Dial(mongoAddress)
+	if err != nil {
+		fmt.Println("ticker_service: mongodb ", err)
+	}
 	// db.tickerdb.ticks.ensureIndex({'date': 1 })'}
-	err = mongoSession.DB("tickerdb").DropDatabase()
+	//err = mongoSession.DB("tickerdb").DropDatabase()
 	if err != nil {
 		fmt.Println("ticker_service: mongodb ", err)
 	}
@@ -61,6 +64,7 @@ func main() {
 	redisPool := redis.NewPool(func() (redis.Conn, error) {
 		c, err := redis.Dial("tcp", redisAddress)
 		if err != nil {
+			fmt.Println(err)
 			return nil, err
 		}
 		return c, err
@@ -85,6 +89,7 @@ func main() {
 		messageResp, err := http.Post(messageUrl+tickPeriod.Ticker, "application/json", bytes.NewBuffer(tick))
 		if err != nil {
 			fmt.Println("ticker_service: publisher ", err)
+			return
 		}
 		defer messageResp.Body.Close()
 	}
@@ -136,8 +141,9 @@ func main() {
 	tickAggregator.setKV(minuteRedis)
 
 	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
+		originUrl := "http://192.168.99.100:8004"
 		if "OPTIONS" == r.Method {
-			w.Header().Add("Access-Control-Allow-Origin", "http://localhost:8004")
+			w.Header().Add("Access-Control-Allow-Origin", originUrl)
 			w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 			w.Header().Add("Access-Control-Allow-Headers", "origin, content-type, accept")
 			w.Header().Add("Access-Control-Max-Age", "1000")
@@ -162,7 +168,7 @@ func main() {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Header().Add("Access-Control-Allow-Origin", "http://localhost:8004")
+		w.Header().Add("Access-Control-Allow-Origin", originUrl)
 		w.Header().Set("Status", "200")
 		w.Write(resultsJSON)
 	})

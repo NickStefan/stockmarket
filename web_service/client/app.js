@@ -11,11 +11,13 @@
 
 // maybe for now, we just async auto block the websockets until the chart
 // loads, then chart will work for now, can come back to the front end later
+var tickerAPI = window.location.protocol + "//" + window.location.hostname + ":8003" + "/query";
+var messageAPI = "ws://" + window.location.hostname + ":8004" + "/ws";
 
 async.auto({
     _data: function(done){
         $.ajax({
-            url:"http://localhost:8003/query",
+            url: tickerAPI,
             method: "POST",
             contentType: 'application/json; charset=utf-8',
             dataType: 'json',
@@ -54,7 +56,7 @@ async.auto({
     sockets: ['chart', function(done, results){
         if (window.WebSocket){
             function connectChart(chart){
-                var socket = new WebSocket("ws://localhost:8004/ws");
+                var socket = new WebSocket(messageAPI);
 
                 socket.onopen = function(e){
                     console.log("connected");
