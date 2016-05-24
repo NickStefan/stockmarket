@@ -8,4 +8,5 @@ WORKDIR /usr/src
 
 RUN npm install
 
-CMD node ./server/app.js
+CMD ["node", "./server/app.js"]
+

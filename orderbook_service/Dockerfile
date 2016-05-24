@@ -8,4 +8,4 @@ RUN go get gopkg.in/redsync.v1
 RUN go install github.com/nickstefan/market/orderbook_service
 
 EXPOSE 8001
-CMD /go/bin/orderbook_service
+CMD ["/go/bin/orderbook_service"]
