@@ -12,7 +12,7 @@ function trade {
 
   tradeUrl=http://192.168.99.100:8001/order
 
-  for i in {1..1}; do
+  for i in {1..500}; do
     # sleep 1
     if [[ $[i % 5] == 0 && $[i % 3] == 0 ]]; then
       price=$((price + 10))

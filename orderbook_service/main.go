@@ -26,10 +26,10 @@ type Payload struct {
 
 func main() {
 
-	ledgerUrl := "http://127.0.0.1:8002/fill"
-	tickerUrl := "http://127.0.0.1:8003/trade"
+	ledgerUrl := "http://ledger:8002/fill"
+	tickerUrl := "http://ticker:8003/trade"
 
-	redisAddress := ":6379"
+	redisAddress := "redis:6379"
 	maxConnections := 10
 
 	redisPool := redis.NewPool(func() (redis.Conn, error) {

@@ -11,6 +11,8 @@ services:
         ports:
             - "8001:8001"
         links:
+            - ticker
+            - ledger
             - redis
     ticker:
         build: ./ticker_service
