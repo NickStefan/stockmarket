@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  creationTimestamp: null
+  labels:
+    service: ticker
+  name: ticker
+spec:
+  replicas: 1
+  selector:
+    service: ticker
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: ticker
+    spec:
+      containers:
+      - image: market_ticker
+        imagePullPolicy: ""
+        name: ticker
+        ports:
+        - containerPort: 8003
+        resources: {}
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes: null
+status:
+  replicas: 0

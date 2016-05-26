@@ -1,0 +1,28 @@
+{
+  "kind": "Service",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "web",
+    "creationTimestamp": null,
+    "labels": {
+      "service": "web"
+    }
+  },
+  "spec": {
+    "ports": [
+      {
+        "name": "8004",
+        "protocol": "TCP",
+        "port": 8004,
+        "targetPort": 8004,
+        "nodePort": 0
+      }
+    ],
+    "selector": {
+      "service": "web"
+    }
+  },
+  "status": {
+    "loadBalancer": {}
+  }
+}

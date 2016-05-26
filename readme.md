@@ -1,5 +1,8 @@
 # Stock Market Clone
 
+- [ ] move all these yaml files into folders
+- [ ] come up with new dev work flow with kubernetes
+
 _now in golang!_
 
 ### TODO

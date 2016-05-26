@@ -1,0 +1,114 @@
+# new bash api needed for my project?
+
+# run a simple docker compose setup
+bash run compose
+
+# be in docker world, tunnel to docker-machine, start kubernetes
+bash run cluster 
+
+# sync docker images with docker-hub
+bash run dockerhub
+
+# destroy any existing rc and svc's
+# create new resources from the yaml files
+bash run resources
+
+# expose certain services to web, log out the nodeport + docker machine ip
+# start the other services in dependency order
+bash run expose
+
+# tear down cluster?
+bash run clear
+
+
+
+
+
+
+# PRE REQS:
+### be in docker world for everything
+bash --login '/Applications/Docker/Docker Quickstart Terminal.app/Contents/Resources/Scripts/start.sh'
+
+### in a separate session, in docker world,  tunnel into the mac docker daemon
+docker-machine ssh `docker-machine active` -N -L 8080:localhost:8080
+
+
+# DOCKER 
+### Make sure kubernetes can pull your images from dockerhub
+
+### tag existing docker images after building them
+docker tag df0e15db7921 nickstefan/market_web:latest
+
+### push docker images up to docker hub so they can be pulled
+docker push nickstefan/market_web
+
+
+# KUBERNETES
+
+### Get kubernetes running
+### run the container that abstracts the kublet, etcd, kubernetes api serveri, etc 
+### into a single container
+export ARCH=amd64
+export K8S_VERSION=$(curl -sS https://storage.googleapis.com/kubernetes-release/release/stable.txt)
+docker run -d \
+           --volume=/:/rootfs:ro \
+           --volume=/sys:/sys:rw \
+           --volume=/var/lib/docker/:/var/lib/docker:rw \
+           --volume=/var/lib/kubelet/:/var/lib/kubelet:rw \
+           --volume=/var/run:/var/run:rw \
+           --net=host \
+           --pid=host \
+           --privileged \
+           gcr.io/google_containers/hyperkube-${ARCH}:${K8S_VERSION} \
+           /hyperkube kubelet \
+           --containerized \
+           --hostname-override=127.0.0.1 \
+           --api-servers=http://localhost:8080 \
+           --config=/etc/kubernetes/manifests \
+           --cluster-dns=10.0.0.10 \
+           --cluster-domain=cluster.local \
+           --allow-privileged --v=2
+
+# article that describes the sort of docker compose of that above container ^
+# https://www.cloudgear.net/blog/2015/5-minutes-kubernetes-setup/
+
+## Create Resources for kubernetes to orchestrate
+
+## use yaml files to make kubernetes resources
+
+# create replication controller resources
+kubectl create -f web-rc.yaml
+
+# create svc resources
+kubectl create -f web-svc.yaml
+
+# expose a rc as a svc at address DockerVmHost:NodePort
+kubectl expose rc web --port=80 --target-port=8004 --type=NodePort --name=web
+
+# if this were on GCE, we'd use a --type=loadbalancer
+
+# look up the NodePort
+kubectl describe svc web
+
+
+
+
+# MISC
+
+# debug whats currently going on with kubernetes
+kubectl get events
+
+# if you need to interact with the docker-machine
+docker-machine ssh `docker-machine active` curl 10.0.0.1
+
+# used this cli to generate kubernetes yaml from my docker compose
+# https://github.com/skippbox/kompose
+
+# running kubernetes locally via docker
+# http://kubernetes.io/docs/getting-started-guides/docker/
+
+# kubernetes book
+# https://www.safaribooksonline.com/library/view/kubernetes-up-and/9781491935668/ch04.html
+
+
+

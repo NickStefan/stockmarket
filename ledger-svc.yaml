@@ -1,0 +1,28 @@
+{
+  "kind": "Service",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "ledger",
+    "creationTimestamp": null,
+    "labels": {
+      "service": "ledger"
+    }
+  },
+  "spec": {
+    "ports": [
+      {
+        "name": "8002",
+        "protocol": "TCP",
+        "port": 8002,
+        "targetPort": 8002,
+        "nodePort": 0
+      }
+    ],
+    "selector": {
+      "service": "ledger"
+    }
+  },
+  "status": {
+    "loadBalancer": {}
+  }
+}
