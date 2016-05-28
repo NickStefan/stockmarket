@@ -1,32 +1,49 @@
 version: '2'
 services:
+    web_lb:
+        build: ./web_lb
+        restart: always
+        ports:
+            - "80:80"
+        link:
+            - web
+            - orderbook1
+            - orderbook2
+            - ticker
+            - ledger
     web:
         #image: nickstefan/web_service
         build: ./web_service
         ports:
-            - "8004:8004"
-    orderbook:
+            - "8080"
+    orderbook1:
         #image: nickstefan/orderbook_service
         build: ./orderbook_service
         ports:
-            - "8001:8001"
+            - "8080"
         links:
             - ticker
             - ledger
+            - redis
+    orderbook2:
+        #image: nickstefan/orderbook_service
+        build: ./orderbook_service
+        ports:
+            - "8080"
+        links:
             - redis
     ticker:
         build: ./ticker_service
         #image: nickstefan/ticker_service
         ports:
-            - "8003:8003"
+            - "8080"
         links:
-            - web
             - redis
             - mongo
     ledger:
         build: ./ledger_service
         ports:
-            - "8002:8002"
+            - "8080"
         #image: nickstefan/ledger_service
     redis:
         image: redis

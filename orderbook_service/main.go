@@ -26,8 +26,8 @@ type Payload struct {
 
 func main() {
 
-	ledgerUrl := "http://ledger:8002/fill"
-	tickerUrl := "http://ticker:8003/trade"
+	tickerUrl := "http://ticker:8080/trade"
+	ledgerUrl := "http://ledger:8080/fill"
 
 	redisAddress := "redis:6379"
 	maxConnections := 10
@@ -89,5 +89,5 @@ func main() {
 		w.Write([]byte("Status 200"))
 	})
 
-	http.ListenAndServe(":8001", nil)
+	http.ListenAndServe(":8080", nil)
 }

@@ -22,4 +22,4 @@ app.get('/', function (req, res) {
 
 messageLayer(app);
 
-app.listen(8004, function () {});
+app.listen(8080, function () {});

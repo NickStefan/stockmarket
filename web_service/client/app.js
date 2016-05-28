@@ -1,5 +1,4 @@
 
-// query localhost:8003/query
 // TickerName:   "STOCK",
 // Periods:      2,
 // PeriodNumber: 1,
@@ -11,8 +10,20 @@
 
 // maybe for now, we just async auto block the websockets until the chart
 // loads, then chart will work for now, can come back to the front end later
-var tickerAPI = window.location.protocol + "//" + window.location.hostname + ":8003" + "/query";
-var messageAPI = "ws://" + window.location.hostname + ":8004" + "/ws";
+var tickerAPI = (
+    window.location.protocol +
+    "//" +
+    window.location.hostname +
+    window.location.port +
+    "/ticker/query"
+);
+
+var messageAPI = (
+    "ws://" +
+    window.location.hostname +
+    window.location.port + 
+    "/ws"
+);
 
 async.auto({
     _data: function(done){

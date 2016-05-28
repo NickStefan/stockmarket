@@ -4,5 +4,5 @@ COPY . /go/src/github.com/nickstefan/market/ledger_service
 
 RUN go install github.com/nickstefan/market/ledger_service
 
-EXPOSE 8002
+EXPOSE 8080
 CMD ["/go/bin/ledger_service"]

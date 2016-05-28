@@ -36,5 +36,5 @@ func main() {
 		w.Write([]byte("Status 200"))
 	})
 
-	http.ListenAndServe(":8002", nil)
+	http.ListenAndServe(":8080", nil)
 }

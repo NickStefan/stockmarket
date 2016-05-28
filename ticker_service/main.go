@@ -43,7 +43,7 @@ func schedule(f func() error, delaySeconds time.Duration) chan struct{} {
 }
 
 func main() {
-	messageUrl := "http://web:8004/msg/ticker/"
+	messageUrl := "http://web:8080/msg/ticker/"
 
 	redisAddress := "redis:6379"
 	maxConnections := 10
@@ -141,16 +141,16 @@ func main() {
 	tickAggregator.setKV(minuteRedis)
 
 	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
-		originUrl := "http://192.168.99.100:8004"
-		if "OPTIONS" == r.Method {
-			w.Header().Add("Access-Control-Allow-Origin", originUrl)
-			w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-			w.Header().Add("Access-Control-Allow-Headers", "origin, content-type, accept")
-			w.Header().Add("Access-Control-Max-Age", "1000")
-			w.Header().Set("Status", "200")
-			w.Write([]byte("Status 200"))
-			return
-		}
+		//originUrl := "http://192.168.99.100:8004"
+		//if "OPTIONS" == r.Method {
+		//w.Header().Add("Access-Control-Allow-Origin", originUrl)
+		//w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		//w.Header().Add("Access-Control-Allow-Headers", "origin, content-type, accept")
+		//w.Header().Add("Access-Control-Max-Age", "1000")
+		//w.Header().Set("Status", "200")
+		//w.Write([]byte("Status 200"))
+		//return
+		//}
 
 		var query Query
 		decoder := json.NewDecoder(r.Body)
@@ -168,10 +168,10 @@ func main() {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Header().Add("Access-Control-Allow-Origin", originUrl)
+		//w.Header().Add("Access-Control-Allow-Origin", originUrl)
 		w.Header().Set("Status", "200")
 		w.Write(resultsJSON)
 	})
 
-	http.ListenAndServe(":8003", nil)
+	http.ListenAndServe(":8080", nil)
 }

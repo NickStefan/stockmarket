@@ -8,5 +8,5 @@ RUN go get gopkg.in/redsync.v1
 
 RUN go install github.com/nickstefan/market/ticker_service
 
-EXPOSE 8003
+EXPOSE 8080
 CMD ["/go/bin/ticker_service"]
