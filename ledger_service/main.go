@@ -11,7 +11,7 @@ func main() {
 	var mutex sync.Mutex
 	dataStore := make(map[string]*Ledger)
 
-	http.HandleFunc("/fill", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/ledger/fill", func(w http.ResponseWriter, r *http.Request) {
 		var payload [2]Trade
 		decoder := json.NewDecoder(r.Body)
 		defer r.Body.Close()

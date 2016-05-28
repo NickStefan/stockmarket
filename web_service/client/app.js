@@ -79,9 +79,10 @@ async.auto({
                 };
 
                 socket.onmessage = function(e){
-                    console.log(e.data);
                     var msg = JSON.parse(e.data);
-
+                    if (msg && msg.payload && msg.payload.volume){
+                        console.log(msg.payload.volume, msg.payload.date);
+                    }
                     switch (msg.api){
                         case 'ticker':
                             if (!msg.payload.volume){

@@ -46,9 +46,10 @@ func (o *OrderBook) getLocker(ticker string) *Locker {
 		redLockMutex := o.redsync.NewMutex("orderbook_service" + ticker)
 		redsync.SetRetryDelay(1 * time.Millisecond).Apply(redLockMutex)
 		redsync.SetExpiry(16 * time.Millisecond).Apply(redLockMutex)
-		redsync.SetTries(32).Apply(redLockMutex)
+		redsync.SetTries(1).Apply(redLockMutex)
 
 		o.lockMap[ticker] = &Locker{
+			name:    "orderbook_service" + ticker,
 			mutLock: &sync.Mutex{},
 			redLock: redLockMutex,
 		}
@@ -112,7 +113,7 @@ func (o *OrderBook) run(ticker string) {
 			o.orderQueue.Dequeue("BUY" + ticker)
 			o.orderQueue.Dequeue("SELL" + ticker)
 
-			o.handleTrade(buy.fill(price), sell.fill(price))
+			go o.handleTrade(buy.fill(price), sell.fill(price))
 
 			o.orderHash.remove(buyTop.Lookup)
 			o.orderHash.remove(sellTop.Lookup)
@@ -121,7 +122,7 @@ func (o *OrderBook) run(ticker string) {
 			o.orderQueue.Dequeue("BUY" + ticker)
 			remainderSell := sell.Shares - buy.Shares
 
-			o.handleTrade(buy.fill(price), sell.partialFill(price, remainderSell))
+			go o.handleTrade(buy.fill(price), sell.partialFill(price, remainderSell))
 
 			o.orderHash.remove(buyTop.Lookup)
 
@@ -129,7 +130,7 @@ func (o *OrderBook) run(ticker string) {
 			o.orderQueue.Dequeue("SELL" + ticker)
 			remainderBuy := buy.Shares - sell.Shares
 
-			o.handleTrade(sell.fill(price), sell.partialFill(price, remainderBuy))
+			go o.handleTrade(sell.fill(price), sell.partialFill(price, remainderBuy))
 
 			o.orderHash.remove(sellTop.Lookup)
 		}

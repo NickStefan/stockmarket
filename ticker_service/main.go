@@ -118,7 +118,7 @@ func main() {
 	// remove schedules
 	// schedules return a chan that can be sent a quit message
 
-	http.HandleFunc("/trade", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/ticker/trade", func(w http.ResponseWriter, r *http.Request) {
 		var payload [2]Trade
 		decoder := json.NewDecoder(r.Body)
 		defer r.Body.Close()
@@ -140,8 +140,8 @@ func main() {
 	tickAggregator.setDB(mongoSession.DB("tickerdb"))
 	tickAggregator.setKV(minuteRedis)
 
-	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
-		//originUrl := "http://192.168.99.100:8004"
+	http.HandleFunc("/ticker/query", func(w http.ResponseWriter, r *http.Request) {
+		//originUrl := "http://192.168.99.100:8080"
 		//if "OPTIONS" == r.Method {
 		//w.Header().Add("Access-Control-Allow-Origin", originUrl)
 		//w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")

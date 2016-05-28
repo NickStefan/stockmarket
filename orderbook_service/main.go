@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"net/http"
+	"time"
 )
 
 type Trade struct {
@@ -20,14 +21,15 @@ type Trade struct {
 }
 
 type Payload struct {
+	Uuid   int      `json:"uuid"`
 	Ticker string   `json:"ticker"`
 	Orders []*Order `json:"orders"`
 }
 
 func main() {
 
-	tickerUrl := "http://ticker:8080/trade"
-	ledgerUrl := "http://ledger:8080/fill"
+	tickerUrl := "http://ticker:8080/ticker/trade"
+	ledgerUrl := "http://ledger:8080/ledger/fill"
 
 	redisAddress := "redis:6379"
 	maxConnections := 10
@@ -63,8 +65,7 @@ func main() {
 		defer tickerResp.Body.Close()
 	})
 
-	http.HandleFunc("/order", func(w http.ResponseWriter, r *http.Request) {
-
+	http.HandleFunc("/orderbook", func(w http.ResponseWriter, r *http.Request) {
 		var payload Payload
 
 		decoder := json.NewDecoder(r.Body)
@@ -77,6 +78,9 @@ func main() {
 			return
 		}
 
+		if payload.Uuid == 500 || payload.Uuid == 1 {
+			fmt.Println("receiving order", payload.Uuid, time.Now().Unix())
+		}
 		err = orderBook.Add(payload)
 		if err != nil {
 			fmt.Println("orderbook_service: orderbook Add  ", err)
@@ -84,7 +88,9 @@ func main() {
 			w.Write([]byte("Status 408"))
 			return
 		}
-
+		if payload.Uuid == 500 || payload.Uuid == 1 {
+			fmt.Println("order taken ", payload.Uuid, time.Now().Unix())
+		}
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))
 	})

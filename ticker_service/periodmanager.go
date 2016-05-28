@@ -80,6 +80,7 @@ func (m *PeriodManager) getLocker(ticker string) *Locker {
 		redsync.SetTries(32).Apply(redLockMutex)
 
 		m.lockMap[ticker] = &Locker{
+			name:    "ticker_service" + m.period + ticker,
 			env:     m.env,
 			mutLock: &sync.Mutex{},
 			redLock: redLockMutex,

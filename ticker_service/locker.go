@@ -8,6 +8,7 @@ import (
 
 type Locker struct {
 	env     string
+	name    string
 	redLock *redsync.Mutex
 	mutLock *sync.Mutex
 }
@@ -19,7 +20,7 @@ func (l *Locker) Lock() error {
 	}
 	err := l.redLock.Lock()
 	if nil != err {
-		fmt.Println(err)
+		fmt.Println(err, l.name)
 		l.mutLock.Unlock()
 		return err
 	}
