@@ -5,7 +5,7 @@ services:
         restart: always
         ports:
             - "80:80"
-        link:
+        links:
             - web
             - orderbook1
             - orderbook2
