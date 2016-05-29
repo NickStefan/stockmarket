@@ -20,7 +20,7 @@ services:
         #image: nickstefan/orderbook_service
         build: ./orderbook_service
         ports:
-            - "8080:8080"
+            - "8080"
         links:
             - ticker
             - ledger

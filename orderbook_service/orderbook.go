@@ -46,7 +46,7 @@ func (o *OrderBook) getLocker(ticker string) *Locker {
 		redLockMutex := o.redsync.NewMutex("orderbook_service" + ticker)
 		redsync.SetRetryDelay(1 * time.Millisecond).Apply(redLockMutex)
 		redsync.SetExpiry(16 * time.Millisecond).Apply(redLockMutex)
-		redsync.SetTries(1).Apply(redLockMutex)
+		redsync.SetTries(32).Apply(redLockMutex)
 
 		o.lockMap[ticker] = &Locker{
 			name:    "orderbook_service" + ticker,
