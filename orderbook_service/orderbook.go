@@ -99,6 +99,8 @@ func (o *OrderBook) negotiatePrice(b *Order, s *Order) float64 {
 	return o.lastPrice
 }
 
+var missing bool
+
 func (o *OrderBook) run(ticker string) {
 	buyTop := o.orderQueue.Peek("BUY" + ticker)
 	sellTop := o.orderQueue.Peek("SELL" + ticker)
@@ -107,6 +109,15 @@ func (o *OrderBook) run(ticker string) {
 
 		buy := o.orderHash.get(buyTop.Lookup)
 		sell := o.orderHash.get(sellTop.Lookup)
+
+		if sell == nil {
+			missing = true
+			fmt.Println("missing", sellTop.Value, sellTop.Lookup)
+		} else {
+			if missing == false {
+				fmt.Println("not missing yet", sellTop.Value, sellTop.Lookup)
+			}
+		}
 		price := o.negotiatePrice(buy, sell)
 
 		if buy.Shares == sell.Shares {

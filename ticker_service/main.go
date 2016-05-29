@@ -54,8 +54,11 @@ func main() {
 	if err != nil {
 		fmt.Println("ticker_service: mongodb ", err)
 	}
-	// db.tickerdb.ticks.ensureIndex({'date': 1 })'}
 	//err = mongoSession.DB("tickerdb").DropDatabase()
+	err = mongoSession.DB("tickerdb").C("ticks").EnsureIndex(mgo.Index{
+		Key:        []string{"ticker", "date"},
+		Background: true,
+	})
 	if err != nil {
 		fmt.Println("ticker_service: mongodb ", err)
 	}
@@ -127,9 +130,9 @@ func main() {
 			fmt.Println("ticker_service: handle trade ", err)
 		}
 
-		// should error handle here
-		minuteManager.add(payload[0])
-		secondManager.add(payload[0])
+		// error handling?
+		go minuteManager.add(payload[0])
+		go secondManager.add(payload[0])
 
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))
@@ -141,17 +144,6 @@ func main() {
 	tickAggregator.setKV(minuteRedis)
 
 	http.HandleFunc("/ticker/query", func(w http.ResponseWriter, r *http.Request) {
-		//originUrl := "http://192.168.99.100:8080"
-		//if "OPTIONS" == r.Method {
-		//w.Header().Add("Access-Control-Allow-Origin", originUrl)
-		//w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-		//w.Header().Add("Access-Control-Allow-Headers", "origin, content-type, accept")
-		//w.Header().Add("Access-Control-Max-Age", "1000")
-		//w.Header().Set("Status", "200")
-		//w.Write([]byte("Status 200"))
-		//return
-		//}
-
 		var query Query
 		decoder := json.NewDecoder(r.Body)
 		defer r.Body.Close()
@@ -168,7 +160,6 @@ func main() {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		//w.Header().Add("Access-Control-Allow-Origin", originUrl)
 		w.Header().Set("Status", "200")
 		w.Write(resultsJSON)
 	})

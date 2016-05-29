@@ -82,6 +82,8 @@ async.auto({
                     var msg = JSON.parse(e.data);
                     if (msg && msg.payload && msg.payload.volume){
                         console.log(msg.payload.volume, msg.payload.date);
+                    } else {
+                        console.log(".");
                     }
                     switch (msg.api){
                         case 'ticker':
