@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"net/http"
+	"runtime"
 	"time"
 )
 
@@ -27,6 +28,10 @@ type Payload struct {
 }
 
 func main() {
+
+	maxProcs := runtime.GOMAXPROCS(0)
+	numCPU := runtime.NumCPU()
+	fmt.Println("Procs and cpu ", maxProcs, numCPU)
 
 	tickerUrl := "http://ticker:8080/ticker/trade"
 	ledgerUrl := "http://ledger:8080/ledger/fill"
