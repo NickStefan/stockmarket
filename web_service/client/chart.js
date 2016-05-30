@@ -13,6 +13,10 @@ function Chart(options){
         this.addPeriod();
         this.draw();
     }.bind(this), this.periodMs);
+
+    var draw = this.draw;
+    this._draw = draw;
+    this.draw =  _.throttle(draw.bind(this), 100);
 }
 
 Chart.prototype.cleanup = function(){   
@@ -49,22 +53,22 @@ Chart.prototype.addPartialData = function(data){
     var last = this._data[ this._data.length - 1];
 
     if (last.volume === 0){
-        last.high = data.high;
-        last.low = data.low;
-        last.open = data.open;
-        last.close = data.close;
+        last.high = data.price;
+        last.low = data.price;
+        last.open = data.price;
+        last.close = data.price;
     }
 
-    if (last.low > data.low){
-        last.low = data.low;
+    if (last.low > data.price){
+        last.low = data.price;
     }
 
-    if (last.high < data.high){
-        last.high = data.high;
+    if (last.high < data.price){
+        last.high = data.price;
     }
 
-    last.close = data.close;
-    last.volume = last.volume + data.volume;
+    last.close = data.price;
+    last.volume = last.volume + data.shares;
 }
 
 Chart.prototype.getVisibleRange = function(){

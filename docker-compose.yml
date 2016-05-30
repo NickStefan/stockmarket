@@ -22,6 +22,7 @@ services:
         ports:
             - "8080"
         links:
+            - web
             - ticker
             - ledger
             - redis
@@ -31,6 +32,9 @@ services:
         ports:
             - "8080"
         links:
+            - web
+            - ticker
+            - ledger
             - redis
     ticker:
         build: ./ticker_service

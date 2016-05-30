@@ -10,21 +10,14 @@ import (
 	"time"
 )
 
-type Trade struct {
-	Actor  string  `json:"actor"`
-	Shares int     `json:"shares"`
-	Ticker string  `json:"ticker"`
-	Price  float64 `json:"price"`
-	Intent string  `json:"intent"`
-	Kind   string  `json:"kind"`
-	State  string  `json:"state"`
-	Time   int64   `json:"time"`
-}
-
 type Payload struct {
 	Uuid   int      `json:"uuid"`
 	Ticker string   `json:"ticker"`
 	Orders []*Order `json:"orders"`
+}
+
+func makeTimeStamp() int64 {
+	return time.Now().UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
 }
 
 func main() {
@@ -32,9 +25,6 @@ func main() {
 	maxProcs := runtime.GOMAXPROCS(0)
 	numCPU := runtime.NumCPU()
 	fmt.Println("Procs and cpu ", maxProcs, numCPU)
-
-	tickerUrl := "http://ticker:8080/ticker/trade"
-	ledgerUrl := "http://ledger:8080/ledger/fill"
 
 	redisAddress := "redis:6379"
 	maxConnections := 10
@@ -51,32 +41,67 @@ func main() {
 
 	orderBook := NewOrderBook(redisPool)
 
+	messageUrl := "http://web:8080/msg/ticker/"
+	tickerUrl := "http://ticker:8080/ticker/trade"
+	//ledgerUrl := "http://ledger:8080/ledger/fill"
+
 	orderBook.setTradeHandler(func(t Trade, o Trade) {
-		trade, err := json.Marshal([2]Trade{t, o})
-		if err != nil {
-			fmt.Println("orderbook_service: trade serialize http ", err)
-		}
+		//go func() {
+		//trades, err := json.Marshal([2]Trade{t, o})
+		//if err != nil {
+		//fmt.Println("orderbook_service: ledger serialize http ", err)
+		//}
+
+		//ledgerResp, err := http.Post(ledgerUrl, "application/json", bytes.NewBuffer(trades))
+		//if err != nil {
+		//fmt.Println("orderbook_service: trade handler http ", err)
+		//return
+		//}
+		//defer ledgerResp.Body.Close()
+		//}()
 
 		go func() {
-			ledgerResp, err := http.Post(ledgerUrl, "application/json", bytes.NewBuffer(trade))
+			tick, err := json.Marshal(struct {
+				Payload AnonymizedTrade `json:"payload"`
+				Api     string          `json:"api"`
+				Version string          `json:"version"`
+			}{
+				Payload: Anonymize(t),
+				Api:     "ticker",
+				Version: "1",
+			})
 			if err != nil {
-				fmt.Println("orderbook_service: trade handler http ", err)
+				fmt.Println("orderbook_service: msg seriailze ", err)
 			}
-			defer ledgerResp.Body.Close()
+
+			if t.Price == 2 {
+				fmt.Println("msg started", makeTimeStamp())
+			}
+			if t.Price == 70 {
+				fmt.Println("msg ending", makeTimeStamp())
+			}
+			messageResp, err := http.Post(messageUrl+t.Ticker, "application/json", bytes.NewBuffer(tick))
+			if err != nil {
+				fmt.Println("orderbook_service: msg http ", err)
+				return
+			}
+			defer messageResp.Body.Close()
 		}()
 
 		go func() {
+			trade, err := json.Marshal(Anonymize(t))
+			if err != nil {
+				fmt.Println("orderbook_service: ticker serialize", err)
+			}
+
 			tickerResp, err := http.Post(tickerUrl, "application/json", bytes.NewBuffer(trade))
 			if err != nil {
-				fmt.Println("orderbook_service: trade handler http ", err)
+				fmt.Println("orderbook_service: ticker http ", err)
+				return
 			}
 			defer tickerResp.Body.Close()
 		}()
 	})
-
-	makeTimeStamp := func() int64 {
-		return time.Now().UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
-	}
 
 	http.HandleFunc("/orderbook", func(w http.ResponseWriter, r *http.Request) {
 		var payload Payload

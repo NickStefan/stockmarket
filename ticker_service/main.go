@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bytes"
+	//"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
@@ -10,14 +10,11 @@ import (
 	"time"
 )
 
-type Trade struct {
-	Actor  string  `json:"actor"`
+type AnonymizedTrade struct {
 	Shares int     `json:"shares"`
 	Ticker string  `json:"ticker"`
 	Price  float64 `json:"price"`
-	Intent string  `json:"intent"`
 	Kind   string  `json:"kind"`
-	State  string  `json:"state"`
 	Time   int64   `json:"time"`
 }
 
@@ -43,7 +40,7 @@ func schedule(f func() error, delaySeconds time.Duration) chan struct{} {
 }
 
 func main() {
-	messageUrl := "http://web:8080/msg/ticker/"
+	//messageUrl := "http://web:8080/msg/ticker/"
 
 	redisAddress := "redis:6379"
 	maxConnections := 10
@@ -75,27 +72,27 @@ func main() {
 
 	defer redisPool.Close()
 
-	publisher := func(tickPeriod *Period) {
-		tick, err := json.Marshal(struct {
-			Payload *Period `json:"payload"`
-			Api     string  `json:"api"`
-			Version string  `json:"version"`
-		}{
-			Payload: tickPeriod,
-			Api:     "ticker",
-			Version: "1",
-		})
-		if err != nil {
-			fmt.Println("ticker_service: publisher ", err)
-		}
+	//publisher := func(tickPeriod *Period) {
+	//tick, err := json.Marshal(struct {
+	//Payload *Period `json:"payload"`
+	//Api     string  `json:"api"`
+	//Version string  `json:"version"`
+	//}{
+	//Payload: tickPeriod,
+	//Api:     "ticker",
+	//Version: "1",
+	//})
+	//if err != nil {
+	//fmt.Println("ticker_service: publisher ", err)
+	//}
 
-		messageResp, err := http.Post(messageUrl+tickPeriod.Ticker, "application/json", bytes.NewBuffer(tick))
-		if err != nil {
-			fmt.Println("ticker_service: publisher ", err)
-			return
-		}
-		defer messageResp.Body.Close()
-	}
+	//messageResp, err := http.Post(messageUrl+tickPeriod.Ticker, "application/json", bytes.NewBuffer(tick))
+	//if err != nil {
+	//fmt.Println("ticker_service: publisher ", err)
+	//return
+	//}
+	//defer messageResp.Body.Close()
+	//}
 
 	tickers := []string{"STOCK"}
 
@@ -105,16 +102,16 @@ func main() {
 	minuteManager.initPeriods()
 	minuteManager.setDB(mongoSession.DB("tickerdb"))
 
-	secondRedis := NewPeriodHash(redisPool, "second")
-	secondManager := NewPeriodManager(redisPool, secondRedis, "second")
-	secondManager.setTickers(tickers)
-	secondManager.initPeriods()
-	secondManager.setPublisher(publisher)
+	//secondRedis := NewPeriodHash(redisPool, "second")
+	//secondManager := NewPeriodManager(redisPool, secondRedis, "second")
+	//secondManager.setTickers(tickers)
+	//secondManager.initPeriods()
+	//secondManager.setPublisher(publisher)
 
 	// TODO do this only if this server elected leader
 	// if leader
 	schedule(minuteManager.Persist, 60)
-	schedule(secondManager.Publish, 1)
+	//schedule(secondManager.Publish, 1)
 	// end if leader
 
 	// TODO if unelect as leader
@@ -122,17 +119,17 @@ func main() {
 	// schedules return a chan that can be sent a quit message
 
 	http.HandleFunc("/ticker/trade", func(w http.ResponseWriter, r *http.Request) {
-		var payload [2]Trade
+		var anonymizedTrade AnonymizedTrade
 		decoder := json.NewDecoder(r.Body)
 		defer r.Body.Close()
-		err := decoder.Decode(&payload)
+		err := decoder.Decode(&anonymizedTrade)
 		if err != nil {
 			fmt.Println("ticker_service: handle trade ", err)
 		}
 
 		// error handling?
-		go minuteManager.add(payload[0])
-		go secondManager.add(payload[0])
+		go minuteManager.add(anonymizedTrade)
+		//go secondManager.add(anonymizedTrade)
 
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))

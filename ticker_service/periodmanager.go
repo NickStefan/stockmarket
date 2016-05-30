@@ -89,7 +89,7 @@ func (m *PeriodManager) getLocker(ticker string) *Locker {
 	}
 }
 
-func (m *PeriodManager) add(t Trade) error {
+func (m *PeriodManager) add(t AnonymizedTrade) error {
 	locker := m.getLocker(t.Ticker)
 	err := locker.Lock()
 	if err != nil {

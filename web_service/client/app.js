@@ -1,3 +1,11 @@
+    //High   float64   `json:"high"`
+	//Low    float64   `json:"low"`
+	//Open   float64   `json:"open"`
+	//Close  float64   `json:"close"`
+	//Volume int       `json:"volume"`
+	//Ticker string    `json:"ticker"`
+	//Date   time.Time `json:"date"`
+
 
 // TickerName:   "STOCK",
 // Periods:      2,
@@ -78,16 +86,20 @@ async.auto({
                     socket.send(msg);
                 };
 
+                var lastTrade;
+                var bid;
+                var ask;
+
                 socket.onmessage = function(e){
                     var msg = JSON.parse(e.data);
-                    if (msg && msg.payload && msg.payload.volume){
-                        console.log(msg.payload.volume, msg.payload.date);
+                    if (msg && msg.payload && msg.payload.shares){
+                        console.log(msg.payload.shares, msg.payload.time);
                     } else {
                         console.log(".");
                     }
                     switch (msg.api){
                         case 'ticker':
-                            if (!msg.payload.volume){
+                            if (!msg.payload.shares){
                             return;
                         }
                         chart.addPartialData(msg.payload);
