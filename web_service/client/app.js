@@ -53,14 +53,14 @@ async.auto({
             }
         });
     },
-    data: ['_data', function(done, results){
+    data: ['_data', function(results, done){
         var data = results._data.map(function(p){
             p.date = new Date(p.date);
             return p;
         });
         done(null, data);
     }],
-    chart: ['data', function(done, results){
+    chart: ['data', function(results, done){
         var chart = new Chart({
             data: results.data,
             selector: "#streaming-chart",
@@ -71,7 +71,7 @@ async.auto({
         chart.draw();    
         done(null, chart);
     }],
-    sockets: ['chart', function(done, results){
+    sockets: ['chart', function(results, done){
         if (window.WebSocket){
             function connectChart(chart){
                 var socket = new WebSocket(messageAPI);
@@ -87,10 +87,10 @@ async.auto({
 
                 socket.onmessage = function(e){
                     var msg = JSON.parse(e.data);
-                    console.log(msg.payload.shares, msg.payload.time);
 
                     switch (msg.api){
                         case 'ticker':
+                            console.log(msg.payload.shares, msg.payload.time);
                             setLastTrade(msg.payload);
                             chart.addPartialData(msg.payload);
                             chart.draw();
