@@ -1,17 +1,3 @@
-    //High   float64   `json:"high"`
-	//Low    float64   `json:"low"`
-	//Open   float64   `json:"open"`
-	//Close  float64   `json:"close"`
-	//Volume int       `json:"volume"`
-	//Ticker string    `json:"ticker"`
-	//Date   time.Time `json:"date"`
-
-
-// TickerName:   "STOCK",
-// Periods:      2,
-// PeriodNumber: 1,
-// PeriodName:   "minute",
-
 // we dont want to closure in the chart
 // we want to be able to add and remove tickers
 // we want to render charts decoupled from socket
@@ -32,6 +18,19 @@ var messageAPI = (
     window.location.port + 
     "/ws"
 );
+
+var lastTradeDOM = document.querySelector(".last-value");
+var bidDOM = document.querySelector(".bid-value");
+var askDOM = document.querySelector(".ask-value");
+
+function setBidAsk(payload){
+    bidDOM.innerHTML = payload[0].shares + " @ " + payload[0].bid;
+    askDOM.innerHTML = payload[1].shares + " @ " + payload[1].ask;
+}
+
+function setLastTrade(payload){
+    lastTradeDOM.innerHTML = payload.shares + " @ " + payload.price;
+}
 
 async.auto({
     _data: function(done){
@@ -86,27 +85,20 @@ async.auto({
                     socket.send(msg);
                 };
 
-                var lastTrade;
-                var bid;
-                var ask;
-
                 socket.onmessage = function(e){
                     var msg = JSON.parse(e.data);
-                    if (msg && msg.payload && msg.payload.shares){
-                        console.log(msg.payload.shares, msg.payload.time);
-                    } else {
-                        console.log(".");
-                    }
+                    console.log(msg.payload.shares, msg.payload.time);
+
                     switch (msg.api){
                         case 'ticker':
-                            if (!msg.payload.shares){
-                            return;
-                        }
-                        chart.addPartialData(msg.payload);
-                        chart.draw();
-                        break;
-                    default:
-                        break;
+                            setLastTrade(msg.payload);
+                            chart.addPartialData(msg.payload);
+                            chart.draw();
+                            break;
+                        case 'bid-ask':
+                            setBidAsk(msg.payload);
+                        default:
+                            break;
                     }
                 };
 

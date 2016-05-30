@@ -12,3 +12,14 @@
 .chart.large {
     height: 400px;
 }
+
+.last-value, .bid-value, .ask-value {
+    min-width: 160px;
+    width: 160px;
+}
+
+.last, .bid, .ask {
+    font-weight: bold;
+    min-width: 160px;
+    width: 160px;
+}

@@ -26,6 +26,24 @@ type Order struct {
 	Timecreated int64   `json:"timecreated"` // unix time
 }
 
+type AnonymizedOrder struct {
+	Bid         float64 `json:"bid"`
+	Ask         float64 `json:"ask"`
+	Shares      int     `json:"shares"`
+	Ticker      string  `json:"ticker"`
+	Timecreated int64   `json:"timecreated"` // unix time
+}
+
+func AnonymizeOrder(order *Order) AnonymizedOrder {
+	return AnonymizedOrder{
+		Bid:         order.Bid,
+		Ask:         order.Ask,
+		Shares:      order.Shares,
+		Ticker:      order.Ticker,
+		Timecreated: order.Timecreated,
+	}
+}
+
 func (o *Order) lookup() string {
 	return strconv.FormatInt(o.Timecreated, 10) + o.Actor
 }

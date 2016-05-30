@@ -9,15 +9,17 @@ import (
 )
 
 type OrderBook struct {
-	lockMap     map[string]*Locker
-	redsync     *redsync.Redsync
-	lastPrice   float64
-	handleTrade tradehandler
-	orderQueue  *OrderQueue
-	orderHash   *OrderHash
+	lockMap       map[string]*Locker
+	redsync       *redsync.Redsync
+	lastPrice     float64
+	handleTrade   tradehandler
+	publishBidAsk bidaskpublisher
+	orderQueue    *OrderQueue
+	orderHash     *OrderHash
 }
 
 type tradehandler func(Trade, Trade)
+type bidaskpublisher func(bid *Order, ask *Order)
 
 func NewOrderBook(pool *redis.Pool) *OrderBook {
 	return &OrderBook{
@@ -34,8 +36,12 @@ func (o *OrderBook) setEnv(env string) {
 	o.orderHash.setEnv(env)
 }
 
-func (o *OrderBook) setTradeHandler(execTrade tradehandler) {
+func (o *OrderBook) setHandleTrade(execTrade tradehandler) {
 	o.handleTrade = execTrade
+}
+
+func (o *OrderBook) setPublishBidAsk(publisher bidaskpublisher) {
+	o.publishBidAsk = publisher
 }
 
 func (o *OrderBook) getLocker(ticker string) *Locker {
@@ -135,5 +141,11 @@ func (o *OrderBook) run(ticker string) {
 
 		buyTop = o.orderQueue.Peek("BUY" + ticker)
 		sellTop = o.orderQueue.Peek("SELL" + ticker)
+	}
+
+	if buyTop != nil && sellTop != nil {
+		buy := o.orderHash.get(buyTop.Lookup)
+		sell := o.orderHash.get(sellTop.Lookup)
+		go o.publishBidAsk(buy, sell)
 	}
 }

@@ -19,7 +19,7 @@ type AnonymizedTrade struct {
 	Time   int64   `json:"time"`
 }
 
-func Anonymize(trade Trade) AnonymizedTrade {
+func AnonymizeTrade(trade Trade) AnonymizedTrade {
 	return AnonymizedTrade{
 		Shares: trade.Shares,
 		Ticker: trade.Ticker,

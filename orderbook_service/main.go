@@ -45,7 +45,7 @@ func main() {
 	tickerUrl := "http://ticker:8080/ticker/trade"
 	//ledgerUrl := "http://ledger:8080/ledger/fill"
 
-	orderBook.setTradeHandler(func(t Trade, o Trade) {
+	orderBook.setHandleTrade(func(t Trade, o Trade) {
 		//go func() {
 		//trades, err := json.Marshal([2]Trade{t, o})
 		//if err != nil {
@@ -66,7 +66,7 @@ func main() {
 				Api     string          `json:"api"`
 				Version string          `json:"version"`
 			}{
-				Payload: Anonymize(t),
+				Payload: AnonymizeTrade(t),
 				Api:     "ticker",
 				Version: "1",
 			})
@@ -89,7 +89,7 @@ func main() {
 		}()
 
 		go func() {
-			trade, err := json.Marshal(Anonymize(t))
+			trade, err := json.Marshal(AnonymizeTrade(t))
 			if err != nil {
 				fmt.Println("orderbook_service: ticker serialize", err)
 			}
@@ -101,6 +101,31 @@ func main() {
 			}
 			defer tickerResp.Body.Close()
 		}()
+	})
+
+	orderBook.setPublishBidAsk(func(bid *Order, ask *Order) {
+		bidAsk, err := json.Marshal(struct {
+			Payload []AnonymizedOrder `json:"payload"`
+			Api     string            `json:"api"`
+			Version string            `json:"version"`
+		}{
+			Payload: []AnonymizedOrder{
+				AnonymizeOrder(bid),
+				AnonymizeOrder(ask),
+			},
+			Api:     "bid-ask",
+			Version: "1",
+		})
+		if err != nil {
+			fmt.Println("orderbook_service: bid-ask seriailze ", err)
+		}
+
+		messageResp, err := http.Post(messageUrl+bid.Ticker, "application/json", bytes.NewBuffer(bidAsk))
+		if err != nil {
+			fmt.Println("orderbook_service: bid-ask http ", err)
+			return
+		}
+		defer messageResp.Body.Close()
 	})
 
 	http.HandleFunc("/orderbook", func(w http.ResponseWriter, r *http.Request) {
