@@ -75,9 +75,9 @@ func (m *PeriodManager) getLocker(ticker string) *Locker {
 		return m.lockMap[ticker]
 	} else {
 		redLockMutex := m.redsync.NewMutex("ticker_service" + m.period + ticker)
-		redsync.SetRetryDelay(1 * time.Millisecond).Apply(redLockMutex)
-		redsync.SetExpiry(16 * time.Millisecond).Apply(redLockMutex)
-		redsync.SetTries(32).Apply(redLockMutex)
+		redsync.SetRetryDelay(5 * time.Millisecond).Apply(redLockMutex)
+		redsync.SetExpiry(500 * time.Millisecond).Apply(redLockMutex)
+		redsync.SetTries(50).Apply(redLockMutex)
 
 		m.lockMap[ticker] = &Locker{
 			name:    "ticker_service" + m.period + ticker,
@@ -166,5 +166,5 @@ func (m *PeriodManager) Publish() error {
 }
 
 func (m *PeriodManager) publish(tickPeriod *Period) {
-	m.publisher(tickPeriod)
+	go m.publisher(tickPeriod)
 }

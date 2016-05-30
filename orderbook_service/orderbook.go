@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"github.com/nickstefan/market/orderbook_service/heap"
 	"gopkg.in/redsync.v1"
@@ -44,9 +43,9 @@ func (o *OrderBook) getLocker(ticker string) *Locker {
 		return o.lockMap[ticker]
 	} else {
 		redLockMutex := o.redsync.NewMutex("orderbook_service" + ticker)
-		redsync.SetRetryDelay(1 * time.Millisecond).Apply(redLockMutex)
-		redsync.SetExpiry(16 * time.Millisecond).Apply(redLockMutex)
-		redsync.SetTries(32).Apply(redLockMutex)
+		redsync.SetRetryDelay(5 * time.Millisecond).Apply(redLockMutex)
+		redsync.SetExpiry(500 * time.Millisecond).Apply(redLockMutex)
+		redsync.SetTries(50).Apply(redLockMutex)
 
 		o.lockMap[ticker] = &Locker{
 			name:    "orderbook_service" + ticker,
@@ -61,7 +60,6 @@ func (o *OrderBook) Add(payload Payload) error {
 	locker := o.getLocker(payload.Ticker)
 	err := locker.Lock()
 	if err != nil {
-		fmt.Println("inside Add", err)
 		return err
 	}
 	defer locker.Unlock()
@@ -99,8 +97,6 @@ func (o *OrderBook) negotiatePrice(b *Order, s *Order) float64 {
 	return o.lastPrice
 }
 
-var missing bool
-
 func (o *OrderBook) run(ticker string) {
 	buyTop := o.orderQueue.Peek("BUY" + ticker)
 	sellTop := o.orderQueue.Peek("SELL" + ticker)
@@ -109,15 +105,6 @@ func (o *OrderBook) run(ticker string) {
 
 		buy := o.orderHash.get(buyTop.Lookup)
 		sell := o.orderHash.get(sellTop.Lookup)
-
-		if sell == nil {
-			missing = true
-			fmt.Println("missing", sellTop.Value, sellTop.Lookup)
-		} else {
-			if missing == false {
-				fmt.Println("not missing yet", sellTop.Value, sellTop.Lookup)
-			}
-		}
 		price := o.negotiatePrice(buy, sell)
 
 		if buy.Shares == sell.Shares {

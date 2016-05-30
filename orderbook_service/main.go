@@ -52,18 +52,26 @@ func main() {
 			fmt.Println("orderbook_service: trade serialize http ", err)
 		}
 
-		ledgerResp, err := http.Post(ledgerUrl, "application/json", bytes.NewBuffer(trade))
-		if err != nil {
-			fmt.Println("orderbook_service: trade handler http ", err)
-		}
-		defer ledgerResp.Body.Close()
+		go func() {
+			ledgerResp, err := http.Post(ledgerUrl, "application/json", bytes.NewBuffer(trade))
+			if err != nil {
+				fmt.Println("orderbook_service: trade handler http ", err)
+			}
+			defer ledgerResp.Body.Close()
+		}()
 
-		tickerResp, err := http.Post(tickerUrl, "application/json", bytes.NewBuffer(trade))
-		if err != nil {
-			fmt.Println("orderbook_service: trade handler http ", err)
-		}
-		defer tickerResp.Body.Close()
+		go func() {
+			tickerResp, err := http.Post(tickerUrl, "application/json", bytes.NewBuffer(trade))
+			if err != nil {
+				fmt.Println("orderbook_service: trade handler http ", err)
+			}
+			defer tickerResp.Body.Close()
+		}()
 	})
+
+	makeTimeStamp := func() int64 {
+		return time.Now().UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
+	}
 
 	http.HandleFunc("/orderbook", func(w http.ResponseWriter, r *http.Request) {
 		var payload Payload
@@ -79,7 +87,7 @@ func main() {
 		}
 
 		if payload.Uuid == 500 || payload.Uuid == 1 {
-			fmt.Println("receiving order", payload.Uuid, time.Now().Unix())
+			fmt.Println("receiving order", payload.Uuid, makeTimeStamp())
 		}
 		err = orderBook.Add(payload)
 		if err != nil {
@@ -89,7 +97,7 @@ func main() {
 			return
 		}
 		if payload.Uuid == 500 || payload.Uuid == 1 {
-			fmt.Println("order taken ", payload.Uuid, time.Now().Unix())
+			fmt.Println("order taken ", payload.Uuid, makeTimeStamp())
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))
