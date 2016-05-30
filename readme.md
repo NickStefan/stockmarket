@@ -1,38 +1,44 @@
 # Stock Market Clone
 
+TOP TODO:
+- place order button in browser
+- deploy to AWS
+
 _now in golang!_
 
 ### TODO
 - [x] ledger service  
+  - [ ] rename to account service
   - [x] listen for http (from orderbook)  
   - [ ] use django and mysql for auth, accounts and assets
+  - [ ] handle accounts and authentication  
   - [x] track quantity and asset for each user (cash is an asset)  
 
 - [x] orderbook service  
   - [x] listen for http (for submitting of orders)  
   - [x] redlock on orderbook ticker keys
-  - [ ] containerize, load balance
+  - [x] containerize, load balance
   - [x] use redis ordered sets for buy and sell priority queues
   - [x] priotiy queues for buy and sell orders  
   - [x] dequeue priority queues into trades  
-  - [x] message to ledger service  
-  - [x] message to ticker service  
+  - [x] message to web service anonymized trades and orderbook bid ask
+  - [x] message to ledger service trades
+  - [x] message to ticker service anonymized trades 
 
 
 - [x] ticker service (chart and quote stream)  
+  - [ ] rename to tickdata service
   - [x] redlock on second and minute ticker keys
-  - [ ] containerize and load balance, need leader elect for ticker
+  - [x] containerize and load balance
+  - [?] need leader elect for ticker
   - [x] use redis to for accumulating trades into tick data
   - [x] on price data http, update minute high, low, open, close, vol information  
   - [x] every 60 seconds, persist 1minute period tick data to DB  
-  - [x] every 1 second, publish 1second period tick data to websockets
-  - [?] deal with 0d out values in ticker values
   - [x] API for charts
 
-- [ ] web service  
+- [x] web service  
   - [x] serve front end javascript  
   - [x] socket messages to interested clients
-  - [ ] handle accounts and authentication  
 
 - [ ] web client (front end)  
   - [x] graph "CHART" data into a stock chart  
@@ -46,14 +52,16 @@ _now in golang!_
   - [ ] front end UI for creating bots  
   - [ ] rule based trading using JSON {$when: ..., $buy: ... }  
 
-- [ ] discover service
-  - [ ] proxy each service
-  - [ ] load balance between multiple instances of each service
-  - [ ] health check API for each service
-  - [ ] api for adding and removing the proxied urls
+- [ ] web load balancer 
+  - [x] proxy each service
+  - [x] load balance between multiple instances of each service
+  - [x] health check API for each service
+  - [?] api for adding and removing the proxied urls
 
-- [ ] nginx reverse proxy all services to one domain  
-- [ ] message queue between services  
+- [x] nginx reverse proxy all services to one domain  
+- [?] message queue between services  
+- [x] containerize local development
+- [ ] deploy containers to production
   
 Ideas:  
  - Ticker names: Kryptonite, Adamantium, Puppies  
