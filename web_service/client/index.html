@@ -6,22 +6,99 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/d3fc/8.0.0/d3fc.min.css" />
     </head>
     <body>
+        <!-- chart -->
         <div id="streaming-chart" class="chart large"></div>
-        <div class="last-trade">
-            <span class="last">Last: </span>
-            <span class="last-value">... </span>
-        </div>
-        <div class="bid-ask">
-            <span class="bid">Bid: </span>
-            <span class="bid-value">... </span>
-            <span class="ask">Ask: </span>
-            <span class="ask-value">... </span>
-        </div>
+
+        <hr>
+        <h3>Symbol: STOCK</h3>
         
+        <div class="ui-col">
+            <!-- bid -->
+            <div class="ui-box">
+                <button class="bid">Create Order</button>
+                <span>Bid: </span>
+                <span class="bid-shares-value">......</span>
+                <span>shares @ $</span>
+                <span class="bid-price-value">......</span>
+            </div>
+
+            <!-- ask -->
+            <div class="ui-box">
+                <button class="ask">Create Order</button>
+                <span>Ask: </span>
+                <span class="ask-shares-value">......</span>
+                <span>shares @ $</span>
+                <span class="ask-price-value">......</span>
+            </div>
+        </div>
+
+        <div class="ui-col">
+            <!-- last trade -->
+            <div class="ui-box">
+                <span>Open: </span>
+            </div>
+            <div class="ui-box">
+                <span>High: </span>
+            </div>
+            <div class="ui-box">
+                <span>Low: </span>
+            </div>
+            <div class="ui-box">
+                <span>Vol: </span>
+            </div>
+            <div class="ui-box">
+                <span>Last: </span>
+                <span class="last-shares-value">......</span>
+                <span>shares @ $</span>
+                <span class="last-price-value">......</span>
+            </div>
+        </div>
+
+        <hr>
+        <h3>Order Creation</h3>
+        <!-- buy -->
+        <div class="ui-col">
+            <div class="ui-box">
+                <button class="buy">Place Order</button>
+                <span>Buy</span>
+                <span class="buy-shares-value">
+                    <input type="number" min=1 step=1 value=100 />
+                </span>
+                <span class="label">shares @ $</span>
+                <span class="buy-price-value">
+                    <input type="number" min=.01 step=.01 value=50 />
+                </span>
+                <button>Delete</button>
+            </div>
+
+            <!-- sell -->
+            <div class="ui-box">
+                <button class="sell">Place Order</button>
+                <span>Sell</span>
+                <span class="sell-shares-value">
+                    <input type="number" min=1 step=1 value=100 />
+                </span>
+                <span class="label">shares @ $</span>
+                <span class="sell-price-value">
+                    <input type="number" min=.01 step=.01 value=50 />
+                </span>
+                <button>Delete</button>
+            </div>
+        </div>
+
+        <hr>
+        <h3>Open Orders</h3>
+        <!-- Open Orders -->
+
+        <hr>
+        <h3>Closed Orders</h3>
+        <!-- Closed Orders -->
+
         <script src="https://cdn.jsdelivr.net/g/jquery@3.0.0-rc1,async@2.0.0-rc.5(async.min.js),lodash@4.13.1"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/d3fc/8.0.0/d3fc.bundle.min.js"></script>
 
         <script src="assets/chart.js"></script>
+        <script src="assets/ui.js"></script>
         <script src="assets/app.js"></script>
    </body>
 </html>

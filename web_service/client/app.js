@@ -19,19 +19,6 @@ var messageAPI = (
     "/ws"
 );
 
-var lastTradeDOM = document.querySelector(".last-value");
-var bidDOM = document.querySelector(".bid-value");
-var askDOM = document.querySelector(".ask-value");
-
-function setBidAsk(payload){
-    bidDOM.innerHTML = payload[0].shares + " @ " + payload[0].bid;
-    askDOM.innerHTML = payload[1].shares + " @ " + payload[1].ask;
-}
-
-function setLastTrade(payload){
-    lastTradeDOM.innerHTML = payload.shares + " @ " + payload.price;
-}
-
 async.auto({
     _data: function(done){
         $.ajax({
@@ -90,13 +77,13 @@ async.auto({
 
                     switch (msg.api){
                         case 'ticker':
-                            console.log(msg.payload.shares, msg.payload.time);
+                            //console.log(msg.payload.shares, msg.payload.time);
                             setLastTrade(msg.payload);
                             chart.addPartialData(msg.payload);
                             chart.draw();
                             break;
                         case 'bid-ask':
-                            setBidAsk(msg.payload);
+                            setLastBidAsk(msg.payload);
                         default:
                             break;
                     }

@@ -28,7 +28,7 @@ func main() {
 		w.Write([]byte("Status 200"))
 	})
 
-	http.HandleFunc("/report", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/ledger/report", func(w http.ResponseWriter, r *http.Request) {
 		for name, ledger := range dataStore {
 			fmt.Println("LEDGER_SERVICE: ", name, ledger)
 		}

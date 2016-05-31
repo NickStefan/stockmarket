@@ -1,7 +1,6 @@
 # Stock Market Clone
 
 TOP TODO:
-- place order button in browser
 - deploy to AWS
 
 _now in golang!_
@@ -45,7 +44,7 @@ _now in golang!_
   - [x] listen to "TICKER" channels  
   - [x] append new data to chart  
   - [ ] display account info  
-  - [ ] place orders  
+  - [x] place orders  
 
 - [ ] bot service (automate trades)  
   - [ ] trading bots   
@@ -53,16 +52,12 @@ _now in golang!_
   - [ ] rule based trading using JSON {$when: ..., $buy: ... }  
 
 - [ ] web load balancer 
-  - [x] proxy each service
+  - [x] nginx
+  - [x] proxy each service to single domain
   - [x] load balance between multiple instances of each service
   - [x] health check API for each service
   - [?] api for adding and removing the proxied urls
 
-- [x] nginx reverse proxy all services to one domain  
-- [?] message queue between services  
-- [x] containerize local development
-- [ ] deploy containers to production
-  
 Ideas:  
  - Ticker names: Kryptonite, Adamantium, Puppies  
  - rule based trading:  

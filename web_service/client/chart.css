@@ -13,13 +13,22 @@
     height: 400px;
 }
 
-.last-value, .bid-value, .ask-value {
-    min-width: 160px;
-    width: 160px;
+.ui-box {}
+
+.ui-box > span, .ui-box > button {
+    min-width: 100px;
+    width: 100px;
 }
 
-.last, .bid, .ask {
-    font-weight: bold;
-    min-width: 160px;
-    width: 160px;
+.ui-col {
+    display: inline-block;
+    margin-left: 20px;
+}
+
+h3 {
+    margin: 0 0 10px 0;
+}
+
+hr {
+    margin: 10px 0 0 0;
 }

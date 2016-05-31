@@ -143,9 +143,18 @@ func (o *OrderBook) run(ticker string) {
 		sellTop = o.orderQueue.Peek("SELL" + ticker)
 	}
 
-	if buyTop != nil && sellTop != nil {
-		buy := o.orderHash.get(buyTop.Lookup)
-		sell := o.orderHash.get(sellTop.Lookup)
-		go o.publishBidAsk(buy, sell)
+	o.publishOrderBook(ticker, buyTop, sellTop)
+}
+
+func (o *OrderBook) publishOrderBook(ticker string, buyTop *heap.Node, sellTop *heap.Node) {
+	bid := &Order{Ticker: ticker}
+	ask := &Order{Ticker: ticker}
+
+	if buyTop != nil {
+		bid = o.orderHash.get(buyTop.Lookup)
 	}
+	if sellTop != nil {
+		ask = o.orderHash.get(sellTop.Lookup)
+	}
+	go o.publishBidAsk(bid, ask)
 }

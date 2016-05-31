@@ -111,7 +111,7 @@ Chart.prototype.draw = function(){
         .xDomain(xExtent(this._data))
         .yDomain(yExtent(this._data))
         .yNice()
-        .chartLabel(this.label)
+        //.chartLabel(this.label)
         .margin({left: 30, right: 30, bottom: 20, top: 30});
 
     // obtain ticks from the underlying scales
