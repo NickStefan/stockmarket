@@ -1,27 +1,46 @@
-web:
-    image: market_web
+web_lb:
+    image: nickstefan/market_web_lb
     ports:
-        - "8004:8004"
-orderbook:
-    image: market_orderbook
-    ports:
-        - "8001:8001"
+        - "80:80"
     links:
+        - web
+        - orderbook1
+        - orderbook2
+        - ticker
+        - ledger
+web:
+    image: nickstefan/market_web
+    ports:
+        - "8080"
+orderbook1:
+    image: nickstefan/market_orderbook1
+    ports:
+        - "8080"
+    links:
+        - web
+        - ticker
+        - ledger
+        - redis
+orderbook2:
+    image: nickstefan/market_orderbook2
+    ports:
+        - "8080"
+    links:
+        - web
         - ticker
         - ledger
         - redis
 ticker:
-    image: market_ticker
+    image: nickstefan/market_ticker
     ports:
-        - "8003:8003"
+        - "8080"
     links:
-        - web
         - redis
         - mongo
 ledger:
-    image: market_ledger
+    image: nickstefan/market_ledger
     ports:
-        - "8002:8002"
+        - "8080"
 redis:
     image: redis
 mongo:
