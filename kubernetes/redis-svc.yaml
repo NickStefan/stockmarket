@@ -1,20 +1,13 @@
-{
-  "kind": "Service",
-  "apiVersion": "v1",
-  "metadata": {
-    "name": "redis",
-    "creationTimestamp": null,
-    "labels": {
-      "service": "redis"
-    }
-  },
-  "spec": {
-    "ports": null,
-    "selector": {
-      "service": "redis"
-    }
-  },
-  "status": {
-    "loadBalancer": {}
-  }
-}
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis
+  creationTimestamp: 
+  labels:
+    service: redis
+spec:
+  ports: 
+  selector:
+    service: redis
+status:
+  loadBalancer: {}

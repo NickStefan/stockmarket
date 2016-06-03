@@ -3,22 +3,22 @@ kind: ReplicationController
 metadata:
   creationTimestamp: null
   labels:
-    service: ticker
-  name: ticker
+    service: orderbook1
+  name: orderbook1
 spec:
   replicas: 1
   selector:
-    service: ticker
+    service: orderbook1
   template:
     metadata:
       creationTimestamp: null
       labels:
-        service: ticker
+        service: orderbook1
     spec:
       containers:
-      - image: nickstefan/market_ticker
+      - image: nickstefan/market_orderbook1
         imagePullPolicy: ""
-        name: ticker
+        name: orderbook1
         ports:
         - containerPort: 8080
         resources: {}

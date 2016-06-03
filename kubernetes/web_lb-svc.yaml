@@ -1,18 +1,18 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: ledger
+  name: web_lb
   creationTimestamp: 
   labels:
-    service: ledger
+    service: web_lb
 spec:
   ports:
-  - name: '8080'
+  - name: '80'
     protocol: TCP
-    port: 8080
-    targetPort: 8080
+    port: 80
+    targetPort: 80
     nodePort: 0
   selector:
-    service: ledger
+    service: web_lb
 status:
   loadBalancer: {}

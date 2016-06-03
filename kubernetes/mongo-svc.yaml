@@ -1,28 +1,18 @@
-{
-  "kind": "Service",
-  "apiVersion": "v1",
-  "metadata": {
-    "name": "mongo",
-    "creationTimestamp": null,
-    "labels": {
-      "service": "mongo"
-    }
-  },
-  "spec": {
-    "ports": [
-      {
-        "name": "27017",
-        "protocol": "TCP",
-        "port": 27017,
-        "targetPort": 27017,
-        "nodePort": 0
-      }
-    ],
-    "selector": {
-      "service": "mongo"
-    }
-  },
-  "status": {
-    "loadBalancer": {}
-  }
-}
+kind: Service
+apiVersion: v1
+metadata:
+  name: mongo
+  creationTimestamp: 
+  labels:
+    service: mongo
+spec:
+  ports:
+  - name: '27017'
+    protocol: TCP
+    port: 27017
+    targetPort: 27017
+    nodePort: 0
+  selector:
+    service: mongo
+status:
+  loadBalancer: {}

@@ -1,28 +1,18 @@
-{
-  "kind": "Service",
-  "apiVersion": "v1",
-  "metadata": {
-    "name": "web",
-    "creationTimestamp": null,
-    "labels": {
-      "service": "web"
-    }
-  },
-  "spec": {
-    "ports": [
-      {
-        "name": "8004",
-        "protocol": "TCP",
-        "port": 8004,
-        "targetPort": 8004,
-        "nodePort": 0
-      }
-    ],
-    "selector": {
-      "service": "web"
-    }
-  },
-  "status": {
-    "loadBalancer": {}
-  }
-}
+kind: Service
+apiVersion: v1
+metadata:
+  name: web
+  creationTimestamp: 
+  labels:
+    service: web
+spec:
+  ports:
+  - name: '8080'
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+    nodePort: 0
+  selector:
+    service: web
+status:
+  loadBalancer: {}

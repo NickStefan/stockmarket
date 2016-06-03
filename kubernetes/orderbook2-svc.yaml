@@ -1,0 +1,28 @@
+{
+  "kind": "Service",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "orderbook2",
+    "creationTimestamp": null,
+    "labels": {
+      "service": "orderbook2"
+    }
+  },
+  "spec": {
+    "ports": [
+      {
+        "name": "8080",
+        "protocol": "TCP",
+        "port": 8080,
+        "targetPort": 8080,
+        "nodePort": 0
+      }
+    ],
+    "selector": {
+      "service": "orderbook2"
+    }
+  },
+  "status": {
+    "loadBalancer": {}
+  }
+}

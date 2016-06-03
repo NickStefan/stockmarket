@@ -1,28 +1,18 @@
-{
-  "kind": "Service",
-  "apiVersion": "v1",
-  "metadata": {
-    "name": "ticker",
-    "creationTimestamp": null,
-    "labels": {
-      "service": "ticker"
-    }
-  },
-  "spec": {
-    "ports": [
-      {
-        "name": "8003",
-        "protocol": "TCP",
-        "port": 8003,
-        "targetPort": 8003,
-        "nodePort": 0
-      }
-    ],
-    "selector": {
-      "service": "ticker"
-    }
-  },
-  "status": {
-    "loadBalancer": {}
-  }
-}
+kind: Service
+apiVersion: v1
+metadata:
+  name: ticker
+  creationTimestamp: 
+  labels:
+    service: ticker
+spec:
+  ports:
+  - name: '8080'
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+    nodePort: 0
+  selector:
+    service: ticker
+status:
+  loadBalancer: {}

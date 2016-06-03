@@ -3,24 +3,24 @@ kind: ReplicationController
 metadata:
   creationTimestamp: null
   labels:
-    service: ticker
-  name: ticker
+    service: web_lb
+  name: web_lb
 spec:
   replicas: 1
   selector:
-    service: ticker
+    service: web_lb
   template:
     metadata:
       creationTimestamp: null
       labels:
-        service: ticker
+        service: web_lb
     spec:
       containers:
-      - image: nickstefan/market_ticker
+      - image: nickstefan/market_web_lb
         imagePullPolicy: ""
-        name: ticker
+        name: web_lb
         ports:
-        - containerPort: 8080
+        - containerPort: 80
         resources: {}
       restartPolicy: Always
       serviceAccountName: ""

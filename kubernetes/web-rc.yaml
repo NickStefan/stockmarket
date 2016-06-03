@@ -20,7 +20,7 @@ spec:
         imagePullPolicy: ""
         name: web
         ports:
-        - containerPort: 8004
+        - containerPort: 8080
         resources: {}
       restartPolicy: Always
       serviceAccountName: ""
