@@ -12,12 +12,10 @@ services:
             - ticker
             - ledger
     web:
-        #image: nickstefan/web_service
         build: ./web_service
         ports:
             - "8080"
     orderbook1:
-        #image: nickstefan/orderbook_service
         build: ./orderbook_service
         ports:
             - "8080"
@@ -27,7 +25,6 @@ services:
             - ledger
             - redis
     orderbook2:
-        #image: nickstefan/orderbook_service
         build: ./orderbook_service
         ports:
             - "8080"
@@ -38,7 +35,9 @@ services:
             - redis
     ticker:
         build: ./ticker_service
-        #image: nickstefan/ticker_service
+        environment:
+            # docker-machine IP. not for production use!
+            MONGOHOST: "192.168.99.100"
         ports:
             - "8080"
         links:
@@ -48,7 +47,6 @@ services:
         build: ./ledger_service
         ports:
             - "8080"
-        #image: nickstefan/ledger_service
     redis:
         image: redis
     mongo:
