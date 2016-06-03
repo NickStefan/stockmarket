@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+if [[ $1 == "build" && $2 == "all"]]; then
+    containers="web_lb web ledger orderbook ticker"
+
+    docker-compose -f docker-compose.yml build
+
+    for container in $containers; do
+        docker push nickstefan/market_$container
+    done
+fi
+
+if [[ $1 == "build" && -z "$2""]]; then
+    docker-compose -f docker-compose.yml build
+    docker push nickstefan/market_$2
+fi
+
+
+if [[ $1 == "configure" && $2 == "ecs"]]; then
+    ecs-cli configure \
+    --region us-west-2 \
+    --profile default \
+    --cluster clusterfornick \
+fi
+
+if [[ $1 == "deploy" && $2 == "ecs"]]; then
+    ecs-cli up \
+    --keypair keyfornick \
+    --capability-iam \
+    --size 2 \
+    --instance-type t2.medium
+fi
+
+
+
+
