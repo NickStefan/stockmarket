@@ -1,28 +1,18 @@
-{
-  "kind": "Service",
-  "apiVersion": "v1",
-  "metadata": {
-    "name": "orderbook",
-    "creationTimestamp": null,
-    "labels": {
-      "service": "orderbook"
-    }
-  },
-  "spec": {
-    "ports": [
-      {
-        "name": "8001",
-        "protocol": "TCP",
-        "port": 8001,
-        "targetPort": 8001,
-        "nodePort": 0
-      }
-    ],
-    "selector": {
-      "service": "orderbook"
-    }
-  },
-  "status": {
-    "loadBalancer": {}
-  }
-}
+kind: Service
+apiVersion: v1
+metadata:
+  name: orderbook
+  creationTimestamp: 
+  labels:
+    service: orderbook
+spec:
+  ports:
+  - name: '8080'
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+    nodePort: 0
+  selector:
+    service: orderbook
+status:
+  loadBalancer: {}

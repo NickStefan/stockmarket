@@ -1,7 +1,10 @@
 version: '2'
 services:
     web_lb:
-        build: ./web_lb
+        build: 
+            context: ./web_lb
+            args:
+                NGINX_CONF: dev.nginx.conf
         restart: always
         ports:
             - "80:80"

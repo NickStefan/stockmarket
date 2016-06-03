@@ -4,25 +4,15 @@ web_lb:
         - "80:80"
     links:
         - web
-        - orderbook1
-        - orderbook2
+        - orderbook
         - ticker
         - ledger
 web:
     image: nickstefan/market_web
     ports:
         - "8080"
-orderbook1:
-    image: nickstefan/market_orderbook1
-    ports:
-        - "8080"
-    links:
-        - web
-        - ticker
-        - ledger
-        - redis
-orderbook2:
-    image: nickstefan/market_orderbook2
+orderbook:
+    image: nickstefan/market_orderbook
     ports:
         - "8080"
     links:

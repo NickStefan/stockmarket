@@ -1,3 +1,4 @@
 FROM nginx:1.11
 
-COPY nginx.conf /etc/nginx/nginx.conf
+ARG NGINX_CONF=nginx.conf
+COPY $NGINX_CONF /etc/nginx/nginx.conf
