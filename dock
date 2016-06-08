@@ -27,8 +27,8 @@ if [ $1 == "ecs" ] && [ $2 == "up" ]; then
     ecs-cli up \
     --keypair keyfornick \
     --capability-iam \
-    --size 2 \
-    --instance-type t2.medium
+    --size 1 \
+    --instance-type m4.2xlarge
 fi
 
 if [ $1 == "ecs" ] && [ $2 == "compose" ]; then

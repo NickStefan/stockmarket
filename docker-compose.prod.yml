@@ -1,40 +1,47 @@
-web_lb:
-    build: ./web_lb
-    ports:
-        - "80:80"
-    links:
-        - web
-        - orderbook
-        - ticker
-        - ledger
-web:
-    build: ./web_service
-    ports:
-        - "8080"
-orderbook:
-    build: ./orderbook_service
-    ports:
-        - "8080"
-    links:
-        - web
-        - ticker
-        - ledger
-        - redis
-ticker:
-    build: ./ticker_service
-    ports:
-        - "8080"
-    links:
-        - redis
-        - mongo
-ledger:
-    build: ./ledger_service
-    ports:
-        - "8080"
-redis:
-    image: redis
-mongo:
-    ports:
-        - "27017:27017"
-    image: mongo
-
+version: '2'
+services:
+    web_lb:
+        build: ./web_lb
+        image: nickstefan/market_web_lb
+        ports:
+            - "80:80"
+        links:
+            - web
+            - orderbook
+            - ticker
+            - ledger
+    web:
+        build: ./web_service
+        image: nickstefan/market_web
+        ports:
+            - "8080"
+    orderbook:
+        build: ./orderbook_service
+        image: nickstefan/market_orderbook
+        ports:
+            - "8080"
+        links:
+            - web
+            - ticker
+            - ledger
+            - redis
+    ticker:
+        build: ./ticker_service
+        image: nickstefan/market_ticker
+        ports:
+            - "8080"
+        links:
+            - redis
+            - mongo
+    ledger:
+        build: ./ledger_service
+        image: nickstefan/market_ticker
+        ports:
+            - "8080"
+    redis:
+        image: redis
+    mongo:
+        ports:
+            - "27017:27017"
+        image: mongo
+    

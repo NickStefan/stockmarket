@@ -22,10 +22,6 @@ func makeTimeStamp() int64 {
 
 func main() {
 
-	maxProcs := runtime.GOMAXPROCS(0)
-	numCPU := runtime.NumCPU()
-	fmt.Println("Procs and cpu ", maxProcs, numCPU)
-
 	redisAddress := "redis:6379"
 	maxConnections := 10
 
@@ -156,6 +152,25 @@ func main() {
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))
+	})
+
+	http.HandleFunc("/orderbook/cpu", func(w http.ResponseWriter, r *http.Request) {
+		maxProcs := runtime.GOMAXPROCS(0)
+		numCPU := runtime.NumCPU()
+		fmt.Println("Procs and cpu ", maxProcs, numCPU)
+
+		info, err := json.Marshal(struct {
+			Cpu   int
+			Procs int
+		}{
+			Cpu:   numCPU,
+			Procs: maxProcs,
+		})
+		if err != nil {
+			fmt.Println(err)
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write(info)
 	})
 
 	http.ListenAndServe(":8080", nil)
