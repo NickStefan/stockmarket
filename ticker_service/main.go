@@ -45,7 +45,8 @@ func main() {
 
 	mongoHost := os.Getenv("MONGOHOST")
 	if "" == mongoHost {
-		mongoHost = "http://mongo"
+		//mongoHost = "http://mongo"
+		mongoHost = os.Getenv("MONGO_PORT_27017_TCP_ADDR")
 	}
 	mongoAddress := mongoHost + ":27017"
 

@@ -1,29 +1,29 @@
 #!/usr/bin/env bash
 
-if [[ $1 == "build" && $2 == "all"]]; then
+if [ $1 == "build" ] && [ $2 == "all" ]; then
     containers="web_lb web ledger orderbook ticker"
 
-    docker-compose -f docker-compose.yml build
+    docker-compose -f docker-compose.prod.yml build
 
     for container in $containers; do
         docker push nickstefan/market_$container
     done
 fi
 
-if [[ $1 == "build" && -z "$2""]]; then
-    docker-compose -f docker-compose.yml build
+if [ $1 == "build" ] && [ -z "$2" ]; then
+    docker-compose -f docker-compose.prod.yml build
     docker push nickstefan/market_$2
 fi
 
 
-if [[ $1 == "configure" && $2 == "ecs"]]; then
+if [ $1 == "ecs" ] && [ $2 == "configure" ]; then
     ecs-cli configure \
     --region us-west-2 \
     --profile default \
-    --cluster clusterfornick \
+    --cluster clusterfornick
 fi
 
-if [[ $1 == "deploy" && $2 == "ecs"]]; then
+if [ $1 == "ecs" ] && [ $2 == "up" ]; then
     ecs-cli up \
     --keypair keyfornick \
     --capability-iam \
@@ -31,6 +31,8 @@ if [[ $1 == "deploy" && $2 == "ecs"]]; then
     --instance-type t2.medium
 fi
 
-
+if [ $1 == "ecs" ] && [ $2 == "compose" ]; then
+    ecs-cli compose --file kubernetes/docker-compose.yml up
+fi
 
 
