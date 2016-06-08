@@ -1,82 +1,67 @@
 #!/usr/bin/env bash
 
-services=`cat services`
+goservices="ledger orderbook ticker"
+containers="web_lb web ledger orderbook ticker"
 
 source mock
-
-# LOCAL
-if [[ $1 == "local" ]]; then
-  for service in $services; do
-    cd $service && go install && cd ..
-  done
-
-  redis-server > /dev/null &
-
-  mongod > /dev/null &
-
-  node ./web_service/server/app.js &
-
-  for service in $services; do
-    $GOPATH/bin/$service &
-  done
-
-  # wait for the db to set up after dropping the previous one
-  sleep 15
-  echo "ready"
-  time trade
-fi
-
 
 # TRADE
 if [[ $1 == "trade" ]]; then
   time trade
 fi
 
-
-# INSTALL
-if [[ $1 == "install" ]]; then
-  for service in $services; do
-    cd $service && go install && cd ..
-  done
-fi
-
-
-# LIST
-if [[ $1 == "list" ]]; then
-
-  ps aux | grep redis-server | grep -v grep
-
-  ps aux | grep mongod | grep -v grep
-
-  ps aux | grep web_service | grep -v grep
-
-  for service in $services; do
-    ps aux | grep $service | grep -v grep
-  done
-fi
-
-
 # TEST
 if [[ $1 == "test" ]]; then
-  for service in $services; do
+  for service in $goservices; do
     cd $service && go test && cd ..
   done
 fi
 
+# BUILD ALL PRODUCTION AND PUSH TO DOCKER HUB
+if [ $1 == "build" ] && [ $2 == "all" ]; then
+    docker-compose -f docker-compose.prod.yml build
 
-# KILL
-if [[ $1 == "kill" ]]; then
+    for container in $containers; do
+        docker push nickstefan/market_$container
+    done
+fi
 
-  # redis-cli shutdown ?
-  redis-cli flushdb
-  pkill -x redis-server
+# BUILD PRODUCTION AND PUSH TO DOCKER HUB
+if [ $1 == "build" ] && [ -z "$2" ]; then
+    docker-compose -f docker-compose.prod.yml build
+    docker push nickstefan/market_$2
+fi
 
-  pkill -x mongod
 
-  pkill -x web_service
+# CONFIGURE ECS
+if [ $1 == "ecs" ] && [ $2 == "configure" ]; then
+    ecs-cli configure \
+    --region us-west-2 \
+    --profile default \
+    --cluster clusterfornick
+fi
 
-  for service in $services; do
-    pkill -x $service
-  done
+# CREATE EC2 CLUSTER FOR USE WITH ECS
+if [ $1 == "ecs" ] && [ $2 == "up" ]; then
+    ecs-cli up \
+    --keypair keyfornick \
+    --capability-iam \
+    --size 1 \
+    --instance-type m4.2xlarge
+fi
+
+# DEPLOY CONTAINERS TO ECS
+if [ $1 == "ecs" ] && [ $2 == "compose" ]; then
+    ecs-cli compose --file kubernetes/docker-compose.yml up
+fi
+
+# DOWN CONTAINERS TO ECS
+if [ $1 == "ecs" ] && [ $2 == "down" ]; then
+    ecs-cli compose --file kubernetes/docker-compose.yml down
+fi
+
+# DOWN CONTAINERS AND CLUSTER
+if [ $1 == "ecs" ] && [ $2 == "cluster" ] && [ $3 == "down" ]; then
+    ecs-cli down --force
 fi
 

@@ -1,8 +1,5 @@
 # Stock Market Clone
 
-TOP TODO:
-- deploy to AWS
-
 _now in golang!_
 
 ### TODO
