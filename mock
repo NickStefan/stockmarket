@@ -10,8 +10,8 @@ function trade {
   price=$((10))
   timeStamp=$(date +%s)
 
-  #tradeUrl=http://192.168.99.100/orderbook
-  tradeUrl=http://52.24.135.106/orderbook
+  tradeUrl=http://192.168.99.100/orderbook
+  #tradeUrl=http://52.33.228.77/orderbook
 
   for i in {1..500}; do
     # sleep 1

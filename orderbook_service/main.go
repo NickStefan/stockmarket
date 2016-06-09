@@ -70,18 +70,19 @@ func main() {
 				fmt.Println("orderbook_service: msg seriailze ", err)
 			}
 
-			if t.Price == 2 {
-				fmt.Println("msg started", makeTimeStamp())
-			}
-			if t.Price == 70 {
-				fmt.Println("msg ending", makeTimeStamp())
-			}
 			messageResp, err := http.Post(messageUrl+t.Ticker, "application/json", bytes.NewBuffer(tick))
 			if err != nil {
 				fmt.Println("orderbook_service: msg http ", err)
 				return
 			}
 			defer messageResp.Body.Close()
+
+			if t.Price == 2 {
+				fmt.Println("first msg", makeTimeStamp())
+			}
+			if t.Price == 70 {
+				fmt.Println("last msg", makeTimeStamp())
+			}
 		}()
 
 		go func() {
@@ -124,6 +125,11 @@ func main() {
 		defer messageResp.Body.Close()
 	})
 
+	var startTime int64
+	var startUuid int
+	var endTime int64
+	var endUuid int
+
 	http.HandleFunc("/orderbook", func(w http.ResponseWriter, r *http.Request) {
 		var payload Payload
 
@@ -137,8 +143,10 @@ func main() {
 			return
 		}
 
-		if payload.Uuid == 500 || payload.Uuid == 1 {
-			fmt.Println("receiving order", payload.Uuid, makeTimeStamp())
+		if payload.Uuid == 1 {
+			startTime = makeTimeStamp()
+			startUuid = payload.Uuid
+			fmt.Println("receiving order", payload.Uuid, startTime)
 		}
 		err = orderBook.Add(payload)
 		if err != nil {
@@ -147,24 +155,35 @@ func main() {
 			w.Write([]byte("Status 408"))
 			return
 		}
-		if payload.Uuid == 500 || payload.Uuid == 1 {
-			fmt.Println("order taken ", payload.Uuid, makeTimeStamp())
+		if payload.Uuid == 500 {
+			endTime = makeTimeStamp()
+			endUuid = payload.Uuid
+			fmt.Println("order taken ", payload.Uuid, endTime)
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Status 200"))
 	})
 
+	// DEBUG AWS
 	http.HandleFunc("/orderbook/cpu", func(w http.ResponseWriter, r *http.Request) {
 		maxProcs := runtime.GOMAXPROCS(0)
 		numCPU := runtime.NumCPU()
 		fmt.Println("Procs and cpu ", maxProcs, numCPU)
 
 		info, err := json.Marshal(struct {
-			Cpu   int
-			Procs int
+			Cpu       int
+			Procs     int
+			Start     int64
+			StartUuid int
+			End       int64
+			EndUuid   int
 		}{
-			Cpu:   numCPU,
-			Procs: maxProcs,
+			Cpu:       numCPU,
+			Procs:     maxProcs,
+			Start:     startTime,
+			StartUuid: startUuid,
+			End:       endTime,
+			EndUuid:   endUuid,
 		})
 		if err != nil {
 			fmt.Println(err)

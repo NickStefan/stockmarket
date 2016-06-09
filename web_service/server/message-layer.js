@@ -7,8 +7,19 @@ module.exports = function(app){
 
     app.hub = hub;      
     
+    var start;
+    var end;
+    
     // receive messages intended for connected clients
     app.post('/msg/ticker/:ticker', function(req, res){
+        if (req.body.payload.price === 2){
+            start = new Date().getTime();
+            console.log(start);
+        }
+        if (req.body.payload.price === 70){
+            end = new Date().getTime();
+            console.log(end);
+        }
         app.hub.sendByTicker(req.params.ticker, req.body);
         res.sendStatus(200);
     });
@@ -18,6 +29,13 @@ module.exports = function(app){
         res.sendStatus(200);
     });
 
+    // DEBUG AWS
+    app.get('/msg/info', function(req, res){
+        res.json({
+            start: start,
+            end: end
+        });
+    });
 
     // receive client connections
     // for now client only sends an initial message with identifying info
