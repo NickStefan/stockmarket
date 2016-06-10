@@ -1,6 +1,5 @@
 web_lb:
-    #cpu_shares: 512
-    #mem_limit: 1048576000
+    cpu_shares: 2048
     image: nickstefan/market_web_lb
     ports:
         - "80:80"
@@ -10,14 +9,12 @@ web_lb:
         - ticker
         - ledger
 web:
-    #cpu_shares: 1024
-    #mem_limit: 1048576000
+    cpu_shares: 1024
     image: nickstefan/market_web
     ports:
         - "8080"
 orderbook:
-    #cpu_shares: 2048
-    #mem_limit: 1048576000
+    cpu_shares: 2048
     image: nickstefan/market_orderbook
     ports:
         - "8080"
@@ -27,8 +24,7 @@ orderbook:
         - ledger
         - redis
 ticker:
-    #cpu_shares: 2048
-    #mem_limit: 1048576000
+    cpu_shares: 512
     image: nickstefan/market_ticker
     ports:
         - "8080"
@@ -36,18 +32,15 @@ ticker:
         - redis
         - mongo
 ledger:
-    #cpu_shares: 512
-    #mem_limit: 1048576000
+    cpu_shares: 512
     image: nickstefan/market_ledger
     ports:
         - "8080"
 redis:
-    #cpu_shares: 1024
-    #mem_limit: 1048576000
+    cpu_shares: 1024
     image: redis
 mongo:
-    #cpu_shares: 512
-    #mem_limit: 1048576000
+    cpu_shares: 512
     ports:
         - "27017:27017"
     image: mongo
