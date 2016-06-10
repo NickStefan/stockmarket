@@ -21,7 +21,9 @@ spec:
         name: web_lb
         ports:
         - containerPort: 80
-        resources: {}
+        resources: 
+            requests:
+                cpu: "4"
       restartPolicy: Always
       serviceAccountName: ""
       volumes: null

@@ -19,7 +19,9 @@ spec:
       - image: redis
         imagePullPolicy: ""
         name: redis
-        resources: {}
+        resources:
+            requests:
+                cpu: "1"
       restartPolicy: Always
       serviceAccountName: ""
       volumes: null

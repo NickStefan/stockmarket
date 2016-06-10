@@ -21,7 +21,9 @@ spec:
         name: web
         ports:
         - containerPort: 8080
-        resources: {}
+        resources:
+            requests:
+                cpu: "1"
       restartPolicy: Always
       serviceAccountName: ""
       volumes: null

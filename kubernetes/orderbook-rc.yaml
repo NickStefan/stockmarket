@@ -21,7 +21,9 @@ spec:
         name: orderbook
         ports:
         - containerPort: 8080
-        resources: {}
+        resources:
+            requests:
+                cpu: "4"
       restartPolicy: Always
       serviceAccountName: ""
       volumes: null
