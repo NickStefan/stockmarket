@@ -2,7 +2,7 @@
 
 goservices="ledger orderbook ticker"
 containers="web_lb web ledger orderbook ticker"
-kubeservices="mongo redis orderbook web_lb web ticker ledger"
+kubeservices="mongo redis orderbook web-lb web ticker ledger"
 
 source mock
 
@@ -97,6 +97,7 @@ if [ $1 == "kube" ] && [ $2 == delete ]; then
 fi
 
 if [ $1 == "kube" ] && [ $2 == "down" ]; then
+    source ./kubernetes/kubeconf
     $HOME/kubernetes/cluster/kube-down.sh
 fi
 
