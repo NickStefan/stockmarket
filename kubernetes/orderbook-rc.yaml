@@ -23,7 +23,7 @@ spec:
         - containerPort: 8080
         resources:
             requests:
-                cpu: "4"
+                cpu: "3"
       restartPolicy: Always
       serviceAccountName: ""
       volumes: null

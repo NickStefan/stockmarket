@@ -2,6 +2,7 @@
 
 goservices="ledger orderbook ticker"
 containers="web_lb web ledger orderbook ticker"
+kubeservices="mongo redis orderbook web_lb web ticker ledger"
 
 source mock
 
@@ -19,7 +20,7 @@ fi
 
 # BUILD ALL PRODUCTION AND PUSH TO DOCKER HUB
 if [ $1 == "build" ] && [ $2 == "all" ]; then
-    docker-compose -f docker-compose.prod.yml build
+    docker-compose -f docker-compose.build.prod.yml build
 
     for container in $containers; do
         docker push nickstefan/market_$container
@@ -28,7 +29,7 @@ fi
 
 # BUILD PRODUCTION AND PUSH TO DOCKER HUB
 if [ $1 == "build" ] && [ -z "$2" ]; then
-    docker-compose -f docker-compose.prod.yml build
+    docker-compose -f docker-compose.build.prod.yml build
     docker push nickstefan/market_$2
 fi
 
@@ -52,12 +53,12 @@ fi
 
 # DEPLOY CONTAINERS TO ECS
 if [ $1 == "ecs" ] && [ $2 == "compose" ]; then
-    ecs-cli compose --file kubernetes/docker-compose.yml up
+    ecs-cli compose --file docker-compose.aws.ecs.yml up
 fi
 
 # DOWN CONTAINERS TO ECS
 if [ $1 == "ecs" ] && [ $2 == "down" ]; then
-    ecs-cli compose --file kubernetes/docker-compose.yml down
+    ecs-cli compose --file docker-compose.aws.ecs.yml down
 fi
 
 # DOWN CONTAINERS AND CLUSTER
@@ -65,3 +66,39 @@ if [ $1 == "ecs" ] && [ $2 == "cluster" ] && [ $3 == "down" ]; then
     ecs-cli down --force
 fi
 
+
+# CREATE EC2 CLUSTER FOR KUBERNETES
+if [ $1 == "kube" ] && [ $2 == "up" ]; then
+    source ./kubernetes/kubeconf
+    $HOME/kubernetes/cluster/kube-up.sh
+fi
+
+# cluster status
+# kubectl cluster-info
+
+# kubernetes cluster admin and password:
+# kubectl config view
+
+if [ $1 == "kube" ] && [ $2 == deploy ]; then
+    for kube in $kubeservices; do
+        kubectl create -f ./kubernetes/$kube-rc.yaml
+        kubectl create -f ./kubernetes/$kube-svc.yaml
+    done
+fi
+
+# get aws ingress load balancer IP (e.g. public address)
+# kubectl describe service web-lb
+
+if [ $1 == "kube" ] && [ $2 == delete ]; then
+    for kube in $kubeservices; do
+        kubectl delete service $kube
+        kubectl delete rc $kube
+    done
+fi
+
+if [ $1 == "kube" ] && [ $2 == "down" ]; then
+    $HOME/kubernetes/cluster/kube-down.sh
+fi
+
+# ssh to master node
+# ssh -i ~/.ssh/kube_aws_rsa admin@<PUBLIC_DNS>

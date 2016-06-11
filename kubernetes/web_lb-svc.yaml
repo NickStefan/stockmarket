@@ -1,11 +1,12 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: web_lb
+  name: web-lb
   creationTimestamp: 
   labels:
-    service: web_lb
+    service: web-lb
 spec:
+  type: LoadBalancer
   ports:
   - name: '80'
     protocol: TCP
@@ -13,6 +14,6 @@ spec:
     targetPort: 80
     nodePort: 0
   selector:
-    service: web_lb
+    service: web-lb
 status:
   loadBalancer: {}

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+export KUBERNETES_PROVIDER=aws
+export NUM_NODES=4
+export MASTER_SIZE=m3.medium
+export NODE_SIZE=c4.xlarge
+export KUBE_AWS_ZONE="" # "us-west-2a"

@@ -7,6 +7,11 @@ metadata:
     service: redis
 spec:
   ports: 
+  - name: '6379'
+    protocol: TCP
+    port: 6379
+    targetPort: 6379
+    nodePort: 0
   selector:
     service: redis
 status:

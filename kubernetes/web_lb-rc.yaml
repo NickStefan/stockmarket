@@ -3,27 +3,27 @@ kind: ReplicationController
 metadata:
   creationTimestamp: null
   labels:
-    service: web_lb
-  name: web_lb
+    service: web-lb
+  name: web-lb
 spec:
   replicas: 1
   selector:
-    service: web_lb
+    service: web-lb
   template:
     metadata:
       creationTimestamp: null
       labels:
-        service: web_lb
+        service: web-lb
     spec:
       containers:
       - image: nickstefan/market_web_lb
         imagePullPolicy: ""
-        name: web_lb
+        name: web-lb
         ports:
         - containerPort: 80
         resources: 
             requests:
-                cpu: "4"
+                cpu: "3"
       restartPolicy: Always
       serviceAccountName: ""
       volumes: null

@@ -10,10 +10,10 @@ docker-machine ssh `docker-machine active` -N -L 8080:localhost:8080
 ### Make sure kubernetes can pull your images from dockerhub
 
 ### tag existing docker images after building them
-docker tag df0e15db7921 nickstefan/market_web:latest
+#docker tag df0e15db7921 nickstefan/market_web:latest
 
 ### push docker images up to docker hub so they can be pulled
-docker push nickstefan/market_web
+#docker push nickstefan/market_web
 
 
 # KUBERNETES
@@ -50,18 +50,18 @@ docker run -d \
 ## use yaml files to make kubernetes resources
 
 # create replication controller resources
-kubectl create -f web-rc.yaml
+#kubectl create -f web-rc.yaml
 
 # create svc resources
-kubectl create -f web-svc.yaml
+#kubectl create -f web-svc.yaml
 
 # expose a rc as a svc at address DockerVmHost:NodePort
-kubectl expose rc web --port=80 --target-port=8004 --type=NodePort --name=web
+#kubectl expose rc web --port=80 --target-port=8004 --type=NodePort --name=web
 
 # if this were on GCE, we'd use a --type=loadbalancer
 
 # look up the NodePort
-kubectl describe svc web
+#kubectl describe svc web
 
 
 
@@ -69,10 +69,10 @@ kubectl describe svc web
 # MISC
 
 # debug whats currently going on with kubernetes
-kubectl get events
+#kubectl get events
 
 # if you need to interact with the docker-machine
-docker-machine ssh `docker-machine active` curl 10.0.0.1
+#docker-machine ssh `docker-machine active` curl 10.0.0.1
 
 # used this cli to generate kubernetes yaml from my docker compose
 # https://github.com/skippbox/kompose
@@ -83,5 +83,6 @@ docker-machine ssh `docker-machine active` curl 10.0.0.1
 # kubernetes book
 # https://www.safaribooksonline.com/library/view/kubernetes-up-and/9781491935668/ch04.html
 
-
+# how kubernetes works on aws
+# https://medium.com/@canthefason/kube-up-i-know-what-you-did-on-aws-93e728d3f56a#.hjze61xgs
 
