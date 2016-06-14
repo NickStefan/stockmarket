@@ -164,7 +164,7 @@ func Test(t *testing.T) {
 				orderBook := NewOrderBook(redisPool)
 				orderBook.setEnv("TESTING")
 
-				orderBook.setTradeHandler(func(t Trade, o Trade) {
+				orderBook.setHandleTrade(func(t Trade, o Trade) {
 					g.Assert(t.Price).Equal(10.05)
 					g.Assert(o.Price).Equal(10.05)
 				})
@@ -178,7 +178,7 @@ func Test(t *testing.T) {
 				orderBook := NewOrderBook(redisPool)
 				orderBook.setEnv("TESTING")
 
-				orderBook.setTradeHandler(func(t Trade, o Trade) {
+				orderBook.setHandleTrade(func(t Trade, o Trade) {
 					g.Assert(t.Price).Equal(10.05)
 					g.Assert(o.Price).Equal(10.05)
 				})

@@ -23,11 +23,12 @@ type bidaskpublisher func(bid *Order, ask *Order)
 
 func NewOrderBook(pool *redis.Pool) *OrderBook {
 	return &OrderBook{
-		lockMap:     make(map[string]*Locker),
-		redsync:     redsync.New([]redsync.Pool{pool}),
-		handleTrade: func(t Trade, o Trade) {},
-		orderHash:   NewOrderHash(pool, ""),
-		orderQueue:  NewOrderQueue(pool),
+		lockMap:       make(map[string]*Locker),
+		redsync:       redsync.New([]redsync.Pool{pool}),
+		handleTrade:   func(t Trade, o Trade) {},
+		publishBidAsk: func(bid *Order, ask *Order) {},
+		orderHash:     NewOrderHash(pool, ""),
+		orderQueue:    NewOrderQueue(pool),
 	}
 }
 

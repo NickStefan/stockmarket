@@ -32,22 +32,22 @@ func TestPeriodManager(t *testing.T) {
 			periodManager.setTickers([]string{"STOCK"})
 			periodManager.initPeriods()
 
-			periodManager.add(Trade{
+			periodManager.add(AnonymizedTrade{
 				Shares: 150, Ticker: "STOCK", Price: 10.50,
 			})
-			periodManager.add(Trade{
+			periodManager.add(AnonymizedTrade{
 				Shares: 10, Ticker: "STOCK", Price: 11.50,
 			})
-			periodManager.add(Trade{
+			periodManager.add(AnonymizedTrade{
 				Shares: 30, Ticker: "STOCK", Price: 11.40,
 			})
-			periodManager.add(Trade{
+			periodManager.add(AnonymizedTrade{
 				Shares: 30, Ticker: "STOCK", Price: 11.10,
 			})
-			periodManager.add(Trade{
+			periodManager.add(AnonymizedTrade{
 				Shares: 20, Ticker: "STOCK", Price: 9.50,
 			})
-			periodManager.add(Trade{
+			periodManager.add(AnonymizedTrade{
 				Shares: 30, Ticker: "STOCK", Price: 10.55,
 			})
 
