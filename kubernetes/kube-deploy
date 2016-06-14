@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-kuberservices=`cat kube-services`
+kubeservices=`cat kube-services`
 source ./secrets
 source ./kube-conf
 

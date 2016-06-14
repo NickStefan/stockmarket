@@ -35,18 +35,26 @@ fi
 
 # KUBE HELPERS
 if [ $1 == "kube" ] && [ $2 == "deploy" ]; then
-    ./kubernetes/kube-deploy
+    cd kubernetes
+    source ./kube-deploy
+    cd -
 fi
 
 if [ $1 == "kube" ] && [ $2 == "create" ]; then
-    ./kubernetes/kube-create    
+    cd kubernetes
+    source ./kube-create    
+    cd -
 fi
 
 if [ $1 == "kube" ] && [ $2 == "delete" ]; then
-    ./kubernetes/kube-delete
+    cd kubernetes
+    source ./kube-delete
+    cd -
 fi
 
 if [ $1 == "kube" ] && [ $2 == "down" ]; then
+    source ./kubernetes/kube-conf
+    source ./kubernetes/secrets
     $HOME/kubernetes/cluster/kube-down.sh
 fi
 

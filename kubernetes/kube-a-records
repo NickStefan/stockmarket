@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
+source ./secrets
+
 elbdomain=$(kubectl describe service web-lb \
     | grep "LoadBalancer Ingress" \
     | awk -F ':' '{print $2}' \
+    | awk '{print $1}'
 )
 
 elbname=$(echo $elbdomain | awk -F '-' '{ print $1 }')
@@ -10,6 +13,7 @@ elbname=$(echo $elbdomain | awk -F '-' '{ print $1 }')
 elbhostedzone=$(aws elb describe-load-balancers --region us-west-2 --load-balancer-name $elbname \
     | grep '"CanonicalHostedZoneNameID"' \
     | awk -F ':' '{ gsub(/"|"\,/, ""); print $2 }'\
+    | tr -d ' '
 )
 
 # check existing a records
@@ -24,8 +28,8 @@ changebatch='
                 "Name": "blackwheel.io.",
                 "Type": "A",
                 "AliasTarget": {
-                    "HostedZoneId": "'"$elbhostedzone"'",
-                    "DNSName": "'"$elbdomain"'",
+                    "HostedZoneId": "'$elbhostedzone'",
+                    "DNSName": "'$elbdomain'",
                     "EvaluateTargetHealth": false
                 }
             }
@@ -36,8 +40,8 @@ changebatch='
                 "Name": "www.blackwheel.io.",
                 "Type": "A",
                 "AliasTarget": {
-                    "HostedZoneId": "'"$elbhostedzone"'",
-                    "DNSName": "'"$elbdomain"'",
+                    "HostedZoneId": "'$elbhostedzone'",
+                    "DNSName": "'$elbdomain'",
                     "EvaluateTargetHealth": false
                 }
             }
@@ -46,7 +50,9 @@ changebatch='
 }
 '
 
+echo $changebatch > ~/route53change.json
+
 update-a-records (){
-    aws route53 change-resource-record-sets --hosted-zone-id $BLACKWHEEL_ZONE --change-batch $changebatch
+    aws route53 change-resource-record-sets --hosted-zone-id $BLACKWHEEL_ZONE --change-batch file://~/route53change.json
 }
 

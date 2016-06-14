@@ -2,6 +2,13 @@
 
 _now in golang!_
 
+TOP TODO
+- ticker HTTP GET API for bid / ask spread
+- make a market maker
+- make a trading bot
+- what languages? no bash
+- golang? node? 
+
 ### TODO
 - [x] ledger service  
   - [ ] rename to account service

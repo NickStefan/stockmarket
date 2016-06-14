@@ -2,12 +2,18 @@
 
 echo "cluster info"
 kubectl cluster-info
-echo "\n"
+echo ""
 
 echo "kubernetes info"
 kubectl config view
-echo "\n"
+echo ""
+
+elbdomain=$(kubectl describe service web-lb \
+    | grep "LoadBalancer Ingress" \
+    | awk -F ':' '{print $2}' \
+    | awk '{print $1}'
+)
 
 echo "to ssh to master node"
-echo "ssh -i ~/.ssh/kube_aws_rsa admin@<PUBLIC_DNS>"
+echo "ssh -i ~/.ssh/kube_aws_rsa admin@$elbdomain"
 

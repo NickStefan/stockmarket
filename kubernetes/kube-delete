@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-kuberservices=`cat kube-services`
+kubeservices=`cat kube-services`
 
 for kube in $kubeservices; do
     kubectl delete service $kube
