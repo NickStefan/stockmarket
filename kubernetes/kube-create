@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+kuberservices=`cat kube-services`
+
+for kube in $kubeservices; do
+    kubectl create -f ./$kube-rc.yaml
+    kubectl create -f ./$kube-svc.yaml
+done

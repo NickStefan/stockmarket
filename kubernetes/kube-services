@@ -1,0 +1,7 @@
+mongo
+redis
+orderbook
+web-lb
+web
+ticker
+ledger

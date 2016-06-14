@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+elbdomain=$(kubectl describe service web-lb \
+    | grep "LoadBalancer Ingress" \
+    | awk -F ':' '{print $2}' \
+)
+
+elbname=$(echo $elbdomain | awk -F '-' '{ print $1 }')
+
+elbhostedzone=$(aws elb describe-load-balancers --region us-west-2 --load-balancer-name $elbname \
+    | grep '"CanonicalHostedZoneNameID"' \
+    | awk -F ':' '{ gsub(/"|"\,/, ""); print $2 }'\
+)
+
+# check existing a records
+elbnameinuse=$(aws route53 list-resource-record-sets --hosted-zone-id $BLACKWHEEL_ZONE | grep "$elbname")
+
+changebatch='
+{
+    "Changes": [
+        {
+            "Action": "UPSERT",
+            "ResourceRecordSet": {
+                "Name": "blackwheel.io.",
+                "Type": "A",
+                "AliasTarget": {
+                    "HostedZoneId": "'"$elbhostedzone"'",
+                    "DNSName": "'"$elbdomain"'",
+                    "EvaluateTargetHealth": false
+                }
+            }
+        },
+        {
+            "Action": "UPSERT",
+            "ResourceRecordSet": {
+                "Name": "www.blackwheel.io.",
+                "Type": "A",
+                "AliasTarget": {
+                    "HostedZoneId": "'"$elbhostedzone"'",
+                    "DNSName": "'"$elbdomain"'",
+                    "EvaluateTargetHealth": false
+                }
+            }
+        }
+    ]
+}
+'
+
+update-a-records (){
+    aws route53 change-resource-record-sets --hosted-zone-id $BLACKWHEEL_ZONE --change-batch $changebatch
+}
+

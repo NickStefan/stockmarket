@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+kuberservices=`cat kube-services`
+source ./secrets
+source ./kube-conf
+
+# create aws cluster and kubernetes infrastructure
+echo "createing aws cluster"
+$HOME/kubernetes/cluster/kube-up.sh
+
+# create replica controllers and services
+echo "creating kubernetes services"
+source ./kube-create
+
+echo "checking a records"
+source ./kube-a-records
+
+if [ -z "$elbnameinuse" ]; then
+    echo "updating a records"
+    update-a-records
+fi
+
+
+
+
+
+

@@ -5,11 +5,6 @@ containers="web_lb web ledger orderbook ticker"
 
 source mock
 
-kubeservices="mongo redis orderbook web-lb web ticker ledger"
-
-source ./secrets
-source ./kubernetes/kubeconf
-
 # TRADE
 if [[ $1 == "trade" ]]; then
   time trade
@@ -18,7 +13,7 @@ fi
 # TEST
 if [[ $1 == "test" ]]; then
   for service in $goservices; do
-    cd $service && go test && cd ..
+    cd "$service"_service && go test && cd ..
   done
 fi
 
@@ -32,133 +27,29 @@ if [ $1 == "build" ] && [ $2 == "all" ]; then
 fi
 
 # BUILD PRODUCTION AND PUSH TO DOCKER HUB
-if [ $1 == "build" ] && [ -z "$2" ]; then
+if [ $1 == "build" ] && [ $2 != "all" ]; then
     docker-compose -f docker-compose.build.prod.yml build
     docker push nickstefan/market_$2
 fi
 
 
-# CONFIGURE ECS
-if [ $1 == "ecs" ] && [ $2 == "configure" ]; then
-    ecs-cli configure \
-    --region us-west-2 \
-    --profile default \
-    --cluster clusterfornick
+# KUBE HELPERS
+if [ $1 == "kube" ] && [ $2 == "deploy" ]; then
+    ./kubernetes/kube-deploy
 fi
 
-# CREATE EC2 CLUSTER FOR USE WITH ECS
-if [ $1 == "ecs" ] && [ $2 == "up" ]; then
-    ecs-cli up \
-    --keypair keyfornick \
-    --capability-iam \
-    --size 1 \
-    --instance-type m4.2xlarge
+if [ $1 == "kube" ] && [ $2 == "create" ]; then
+    ./kubernetes/kube-create    
 fi
 
-# DEPLOY CONTAINERS TO ECS
-if [ $1 == "ecs" ] && [ $2 == "compose" ]; then
-    ecs-cli compose --file docker-compose.aws.ecs.yml up
-fi
-
-# DOWN CONTAINERS TO ECS
-if [ $1 == "ecs" ] && [ $2 == "down" ]; then
-    ecs-cli compose --file docker-compose.aws.ecs.yml down
-fi
-
-# DOWN CONTAINERS AND CLUSTER
-if [ $1 == "ecs" ] && [ $2 == "cluster" ] && [ $3 == "down" ]; then
-    ecs-cli down --force
-fi
-
-
-# CREATE EC2 CLUSTER FOR KUBERNETES
-if [ $1 == "kube" ] && [ $2 == "up" ]; then
-    $HOME/kubernetes/cluster/kube-up.sh
-fi
-
-# cluster status
-# kubectl cluster-info
-
-# ssh to master node
-# ssh -i ~/.ssh/kube_aws_rsa admin@<PUBLIC_DNS>
-
-# kubernetes cluster admin and password:
-# kubectl config view
-
-# get aws ingress load balancer IP (e.g. public address)
-
-
-if [ $1 == "kube" ] && [ $2 == deploy ]; then
-    for kube in $kubeservices; do
-        kubectl create -f ./kubernetes/$kube-rc.yaml
-        kubectl create -f ./kubernetes/$kube-svc.yaml
-    done
-fi
-
-if [ $1 == "kube" ] && [ $2 == delete ]; then
-    for kube in $kubeservices; do
-        kubectl delete service $kube
-        kubectl delete rc $kube
-    done
+if [ $1 == "kube" ] && [ $2 == "delete" ]; then
+    ./kubernetes/kube-delete
 fi
 
 if [ $1 == "kube" ] && [ $2 == "down" ]; then
     $HOME/kubernetes/cluster/kube-down.sh
 fi
 
-elbdns=$(kubectl describe service web-lb \
-    | grep "LoadBalancer Ingress" \
-    | awk -F ':' '{print $2}' \
-)
 
-elbname=$(echo $elbdns | awk -F '-' '{ print $1 }')
 
-elbhostedzone=$(aws elb describe-load-balancers --region us-west-2 --load-balancer-name $elbname \
-    | grep '"CanonicalHostedZoneNameID"' \
-    | awk -F ':' '{ gsub(/"|"\,/, ""); print $2 }'\
-)
-
-# check existing a records
-elbnameinuse=$(aws route53 list-resource-record-sets --hosted-zone-id $BLACKWHEEL_ZONE | grep "$elbname")
-
-if [ "$elbnameinuse" ]; then
-    echo "done!"
-fi
-# else switch a record
-
-# TODO rolling deploy commands
-
-changebatch='
-{
-    "Changes": [
-        {
-            "Action": "UPSERT",
-            "ResourceRecordSet": {
-                "Name": "blackwheel.io.",
-                "Type": "A",
-                "AliasTarget": {
-                    "HostedZoneId": "'"$elbhostedzone"'",
-                    "DNSName": "'"$elbdns"'",
-                    "EvaluateTargetHealth": false
-                }
-            }
-        },
-        {
-            "Action": "UPSERT",
-            "ResourceRecordSet": {
-                "Name": "www.blackwheel.io.",
-                "Type": "A",
-                "AliasTarget": {
-                    "HostedZoneId": "'"$elbhostedzone"'",
-                    "DNSName": "'"$elbdns"'",
-                    "EvaluateTargetHealth": false
-                }
-            }
-        }
-    ]
-}
-'
-
-# update a records
-#aws route53 change-resource-record-sets --hosted-zone-id $BLACKWHEEL_ZONE --change-batch $changebatch
 

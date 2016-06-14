@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+echo "cluster info"
+kubectl cluster-info
+echo "\n"
+
+echo "kubernetes info"
+kubectl config view
+echo "\n"
+
+echo "to ssh to master node"
+echo "ssh -i ~/.ssh/kube_aws_rsa admin@<PUBLIC_DNS>"
+
