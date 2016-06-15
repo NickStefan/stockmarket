@@ -6,11 +6,9 @@ TOP TODO
 - ticker HTTP GET API for bid / ask spread
 - make a market maker
 - make a trading bot
-- what languages? no bash
-- golang? node? 
 
 ### TODO
-- [x] ledger service  
+- [ ] ledger service  
   - [ ] rename to account service
   - [x] listen for http (from orderbook)  
   - [ ] use django and mysql for auth, accounts and assets
@@ -29,7 +27,7 @@ TOP TODO
   - [x] message to ticker service anonymized trades 
 
 
-- [x] ticker service (chart and quote stream)  
+- [ ] ticker service (chart and quote stream)  
   - [ ] rename to tickdata service
   - [x] redlock on second and minute ticker keys
   - [x] containerize and load balance
@@ -39,9 +37,10 @@ TOP TODO
   - [x] every 60 seconds, persist 1minute period tick data to DB  
   - [x] API for charts
 
-- [x] web service  
+- [ ] web service  
   - [x] serve front end javascript  
   - [x] socket messages to interested clients
+  - [ ] scale messages across multiple instances with web sockets?  
 
 - [ ] web client (front end)  
   - [x] graph "CHART" data into a stock chart  
@@ -55,12 +54,9 @@ TOP TODO
   - [ ] front end UI for creating bots  
   - [ ] rule based trading using JSON {$when: ..., $buy: ... }  
 
-- [ ] web load balancer 
+- [x] web load balancer 
   - [x] nginx
   - [x] proxy each service to single domain
-  - [x] load balance between multiple instances of each service
-  - [x] health check API for each service
-  - [?] api for adding and removing the proxied urls
 
 Ideas:  
  - Ticker names: Kryptonite, Adamantium, Puppies  
