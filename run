@@ -32,6 +32,15 @@ if [ $1 == "build" ] && [ $2 != "all" ]; then
     docker push nickstefan/market_$2
 fi
 
+# BUILD, TAG AND PUSH IMAGE WITH BRANCH NAME
+if [ $1 == "tag" ] && [ $2 != "all" ]; then
+    BRANCH_NAME=git rev-parse --abbrev-ref HEAD
+    docker-compose -f docker-compose.build.yml build
+    IMAGE_ID=docker images | grep $2 | head -1 | awk '{ print $3 }'
+    docker tag $IMAGE_ID nickstefan/market_$2$BRANCHNAME
+    docker push nickstefan/market_$2$BRANCH_NAME
+fi
+
 
 # KUBE HELPERS
 if [ $1 == "kube" ] && [ $2 == "deploy" ]; then
