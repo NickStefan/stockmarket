@@ -52,10 +52,22 @@ if [ $1 == "kube" ] && [ $2 == "delete" ]; then
     cd -
 fi
 
+if [ $1 == "kube" ] && [ $2 == "update" ]; then
+    source ./kubernetes/kube-conf
+    source ./kubernetes/secrets
+    kubectl rolling-update $3 --image=nickstefan/market_$3 --image-pull-policy=Always
+fi
+
 if [ $1 == "kube" ] && [ $2 == "down" ]; then
     source ./kubernetes/kube-conf
     source ./kubernetes/secrets
     $HOME/kubernetes/cluster/kube-down.sh
+fi
+
+if [ $1 == "kube" ] && [ $2 == "info" ]; then
+    source ./kubernetes/kube-conf
+    source ./kubernetes/secrets
+    source ./kubernetes/kube-info
 fi
 
 

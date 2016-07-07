@@ -15,7 +15,7 @@ source ./kube-create
 echo "checking a records"
 source ./kube-a-records
 
-if [ -z "$elbnameinuse" ]; then
+if [ -z "$elbnameinuse" ] && [$KUBE_AWS_INSTANCE_PREFIX == "kubernetes"]; then
     echo "updating a records"
     update-a-records
 fi
