@@ -2,6 +2,7 @@
 
 goservices="ledger orderbook ticker"
 containers="web_lb web ledger orderbook ticker"
+BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
 
 source mock
 
@@ -34,11 +35,10 @@ fi
 
 # BUILD, TAG AND PUSH IMAGE WITH BRANCH NAME
 if [ $1 == "tag" ] && [ $2 != "all" ]; then
-    BRANCH_NAME=git rev-parse --abbrev-ref HEAD
     docker-compose -f docker-compose.build.yml build
-    IMAGE_ID=docker images | grep $2 | head -1 | awk '{ print $3 }'
-    docker tag $IMAGE_ID nickstefan/market_$2$BRANCHNAME
-    docker push nickstefan/market_$2$BRANCH_NAME
+    IMAGE_ID=$(docker images | grep $2 | head -1 | awk '{ print $3 }')
+    docker tag $IMAGE_ID nickstefan/market_$2:$BRANCH_NAME
+    docker push nickstefan/market_$2:$BRANCH_NAME
 fi
 
 
@@ -61,12 +61,23 @@ if [ $1 == "kube" ] && [ $2 == "delete" ]; then
     cd -
 fi
 
+
+# KUBE ROLLING UPDATES
 if [ $1 == "kube" ] && [ $2 == "update" ]; then
     source ./kubernetes/kube-conf
     source ./kubernetes/secrets
     kubectl rolling-update $3 --image=nickstefan/market_$3 --image-pull-policy=Always
 fi
 
+
+if [ $1 == "kube" ] && [ $2 == "update-tag" ]; then
+    source ./kubernetes/kube-conf
+    source ./kubernetes/secrets
+    kubectl rolling-update $3 --image=nickstefan/market_$3:$BRANCH_NAME --image-pull-policy=Always
+fi
+
+
+# KUBE CLUSTER
 if [ $1 == "kube" ] && [ $2 == "down" ]; then
     source ./kubernetes/kube-conf
     source ./kubernetes/secrets
