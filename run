@@ -19,7 +19,7 @@ fi
 
 # BUILD ALL PRODUCTION AND PUSH TO DOCKER HUB
 if [ $1 == "build" ] && [ $2 == "all" ]; then
-    docker-compose -f docker-compose.build.prod.yml build
+    docker-compose -f docker-compose.build.yml build
 
     for container in $containers; do
         docker push nickstefan/market_$container
@@ -28,7 +28,7 @@ fi
 
 # BUILD PRODUCTION AND PUSH TO DOCKER HUB
 if [ $1 == "build" ] && [ $2 != "all" ]; then
-    docker-compose -f docker-compose.build.prod.yml build
+    docker-compose -f docker-compose.build.yml build
     docker push nickstefan/market_$2
 fi
 

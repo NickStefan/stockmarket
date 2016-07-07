@@ -1,10 +1,5 @@
 #!/usr/bin/env bashs
 
-#10000 44 seconds, memory: 10, 2.7, 2.2
-#1000 3.8 seconds, memory: 5.6, 3.1, 2.9
-#500 1.9 seconds, memory: 5.3 orderbook, 2.7 ticker, 2.2 ledger
-#250 .9 seconds, memory: 5.1, 2.2, 1.8
-
 function trade { 
 
   price=$((10))
