@@ -1,7 +1,7 @@
 // we dont want to closure in the chart
 // we want to be able to add and remove tickers
 // we want to render charts decoupled from socket
-
+alert('hello brandcast');
 // maybe for now, we just async auto block the websockets until the chart
 // loads, then chart will work for now, can come back to the front end later
 var tickerAPI = (
